@@ -12,6 +12,9 @@ import Students from "./pages/Students";
 import StudentNew from "./pages/StudentNew";
 import StudentDetail from "./pages/StudentDetail";
 import CoachingNew from "./pages/CoachingNew";
+import Coaches from "./pages/Coaches";
+import CoachNew from "./pages/CoachNew";
+import CoachDetail from "./pages/CoachDetail";
 import CoachDashboard from "./pages/CoachDashboard";
 import StudentMyPage from "./pages/StudentMyPage";
 
@@ -24,7 +27,6 @@ function App() {
           <h1>SF6 Coaching</h1>
 
           <nav>
-            {/* 管理 */}
             <NavLink
               to="/"
               className={({ isActive }) =>
@@ -43,7 +45,15 @@ function App() {
               生徒一覧
             </NavLink>
 
-            {/* コーチ */}
+            <NavLink
+              to="/coaches"
+              className={({ isActive }) =>
+                isActive ? "active" : ""
+              }
+            >
+              コーチ一覧
+            </NavLink>
+
             <NavLink
               to="/coach"
               className={({ isActive }) =>
@@ -53,9 +63,9 @@ function App() {
               コーチ画面
             </NavLink>
 
-            {/* 生徒 */}
+            {/* 開発確認用 */}
             <NavLink
-              to="/my"
+              to="/mypage/4"
               className={({ isActive }) =>
                 isActive ? "active" : ""
               }
@@ -65,7 +75,7 @@ function App() {
           </nav>
         </aside>
 
-        {/* メインコンテンツ */}
+        {/* メイン */}
         <main className="main">
           <Routes>
             {/* 管理ダッシュボード */}
@@ -86,7 +96,7 @@ function App() {
               element={<StudentNew />}
             />
 
-            {/* コーチが見る生徒詳細 */}
+            {/* 生徒詳細 */}
             <Route
               path="/students/:id"
               element={<StudentDetail />}
@@ -98,7 +108,25 @@ function App() {
               element={<CoachingNew />}
             />
 
-            {/* コーチダッシュボード */}
+            {/* コーチ一覧 */}
+            <Route
+              path="/coaches"
+              element={<Coaches />}
+            />
+
+            {/* コーチ登録 */}
+            <Route
+              path="/coaches/new"
+              element={<CoachNew />}
+            />
+
+            {/* コーチ詳細 */}
+            <Route
+              path="/coaches/:id"
+              element={<CoachDetail />}
+            />
+
+            {/* コーチ画面 */}
             <Route
               path="/coach"
               element={<CoachDashboard />}
@@ -106,7 +134,7 @@ function App() {
 
             {/* 生徒マイページ */}
             <Route
-              path="/my"
+              path="/mypage/:id"
               element={<StudentMyPage />}
             />
           </Routes>

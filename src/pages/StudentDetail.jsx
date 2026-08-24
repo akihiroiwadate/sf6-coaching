@@ -1,280 +1,134 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 function StudentDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const students = [
-    {
-      id: 1,
-      name: "Player01",
-      playerId: "1234567890",
-      coach: "Coach A",
-      character: "リュウ",
-      rank: "MASTER",
-      mr: 1450,
+  const [student, setStudent] = useState(null);
+  const [coachingRecords, setCoachingRecords] = useState([]);
 
-      goal: "MR1600を目指す",
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-      request:
-        "守りを中心に見てほしい。起き攻めへの対応を改善したい。",
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
-      gameAvailability:
-        "月・水・金 19:00〜23:00、土 13:00〜23:00",
+  // 生徒情報とコーチング履歴を取得
+  async function fetchData() {
+    setLoading(true);
+    setErrorMessage("");
 
-      coachingAvailability:
-        "水 20:00〜22:00、土 14:00〜18:00",
+    // 生徒情報
+    const { data: studentData, error: studentError } =
+      await supabase
+        .from("students")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
 
-      selfAnalysis: {
-        strengths: [
-          "コンボには自信がある",
-          "攻めを継続するのが得意",
-        ],
-        weaknesses: [
-          "守りが苦手",
-          "画面端になると焦ってしまう",
-          "対空に自信がない",
-        ],
-      },
+    if (studentError) {
+      console.error("生徒情報取得エラー:", studentError);
 
-      coachAnalysis: {
-        strengths: [
-          "コンボ精度が高い",
-          "攻めの継続力がある",
-          "チャンス時の火力を取れている",
-        ],
-        improvementPoints: [
-          "画面端での守りを改善する",
-          "相手の飛びを通す回数を減らす",
-          "守りでドライブゲージを使いすぎない",
-        ],
-      },
+      setErrorMessage(studentError.message);
+      setLoading(false);
 
-      task: "画面端での守りを安定させる",
+      return;
+    }
 
-      taskReason:
-        "本人も守りを苦手と感じており、コーチから見ても改善効果が大きいため。",
+    if (!studentData) {
+      setStudent(null);
+      setLoading(false);
 
-      growth: {
-        previousMr: 1388,
-        currentMr: 1450,
-        completedTasks: 3,
-        coachingCount: 6,
+      return;
+    }
 
-        skills: [
-          {
-            name: "対空",
-            previous: 2,
-            current: 4,
-          },
-          {
-            name: "確反",
-            previous: 3,
-            current: 4,
-          },
-          {
-            name: "ゲージ管理",
-            previous: 3,
-            current: 3,
-          },
-          {
-            name: "リーサル判断",
-            previous: 1,
-            current: 3,
-          },
-        ],
-      },
+    setStudent(studentData);
 
-      coachingHistory: [
-        {
-          id: 1,
-          date: "2026/08/20",
-          content: "対空と守りを中心にチェック",
-        },
-        {
-          id: 2,
-          date: "2026/08/13",
-          content: "確反とゲージ管理を確認",
-        },
-      ],
-    },
+    // コーチング履歴
+    const { data: recordData, error: recordError } =
+      await supabase
+        .from("coaching_records")
+        .select("*")
+        .eq("student_id", id)
+        .order("date", { ascending: false });
 
-    {
-      id: 2,
-      name: "Player02",
-      playerId: "2345678901",
-      coach: "Coach B",
-      character: "ケン",
-      rank: "DIAMOND 5",
-      mr: "-",
+    if (recordError) {
+      console.error(
+        "コーチング履歴取得エラー:",
+        recordError
+      );
 
-      goal: "MASTERに到達する",
+      setErrorMessage(recordError.message);
+    } else {
+      setCoachingRecords(recordData ?? []);
+    }
 
-      request: "攻め方とコンボ選択を教えてほしい。",
+    setLoading(false);
+  }
 
-      gameAvailability:
-        "火・木 20:00〜23:00、日 15:00〜22:00",
+  // 生徒削除
+  async function handleDelete() {
+    if (!student) return;
 
-      coachingAvailability:
-        "木 20:00〜22:00、日 16:00〜19:00",
+    const confirmed = window.confirm(
+      `${student.name} を削除しますか？`
+    );
 
-      selfAnalysis: {
-        strengths: [
-          "攻めるのが好き",
-          "インパクトを使うのが得意",
-        ],
-        weaknesses: [
-          "確反がよく分からない",
-          "守りで暴れてしまう",
-        ],
-      },
+    if (!confirmed) return;
 
-      coachAnalysis: {
-        strengths: [
-          "前に出る積極性がある",
-          "相手の動きを見て攻められる",
-        ],
-        improvementPoints: [
-          "確反の知識を増やす",
-          "起き上がりの選択肢を整理する",
-          "無理なインパクトを減らす",
-        ],
-      },
+    const { data, error } = await supabase
+      .from("students")
+      .delete()
+      .eq("id", student.id)
+      .select();
 
-      task: "確反を覚える",
+    console.log("削除結果:", data);
+    console.log("削除エラー:", error);
 
-      taskReason:
-        "大きな反撃チャンスを逃す場面が多く、勝率改善につながりやすいため。",
+    if (error) {
+      alert(
+        `削除に失敗しました：${error.message}`
+      );
 
-      growth: {
-        previousMr: null,
-        currentMr: null,
-        completedTasks: 2,
-        coachingCount: 4,
+      return;
+    }
 
-        skills: [
-          {
-            name: "対空",
-            previous: 2,
-            current: 3,
-          },
-          {
-            name: "確反",
-            previous: 1,
-            current: 3,
-          },
-          {
-            name: "ゲージ管理",
-            previous: 2,
-            current: 3,
-          },
-          {
-            name: "リーサル判断",
-            previous: 2,
-            current: 2,
-          },
-        ],
-      },
+    if (!data || data.length === 0) {
+      alert(
+        "削除できませんでした。RLS設定を確認してください。"
+      );
 
-      coachingHistory: [
-        {
-          id: 1,
-          date: "2026/08/19",
-          content: "確反の確認とコンボ練習",
-        },
-      ],
-    },
+      return;
+    }
 
-    {
-      id: 3,
-      name: "Player03",
-      playerId: "3456789012",
-      coach: "Coach C",
-      character: "ジュリ",
-      rank: "MASTER",
-      mr: 1520,
+    alert("生徒情報を削除しました");
 
-      goal: "MR1700を目指す",
+    navigate("/students");
+  }
 
-      request:
-        "試合終盤の判断とリーサル判断を重点的に見てほしい。",
+  if (loading) {
+    return <p>読み込み中...</p>;
+  }
 
-      gameAvailability:
-        "月・金 21:00〜24:00、土 18:00〜24:00",
+  if (errorMessage) {
+    return (
+      <div>
+        <h2>データ取得エラー</h2>
 
-      coachingAvailability:
-        "金 21:00〜23:00、土 19:00〜22:00",
+        <p>{errorMessage}</p>
 
-      selfAnalysis: {
-        strengths: [
-          "立ち回りには自信がある",
-          "差し返しが得意",
-        ],
-        weaknesses: [
-          "リーサルを逃すことがある",
-          "ゲージを残しすぎる",
-        ],
-      },
-
-      coachAnalysis: {
-        strengths: [
-          "地上戦が安定している",
-          "相手の技に対する反応が良い",
-        ],
-        improvementPoints: [
-          "リーサル状況の判断を速くする",
-          "SAゲージを使う判断を改善する",
-        ],
-      },
-
-      task: "リーサル判断を改善する",
-
-      taskReason:
-        "立ち回りは安定しているため、勝ち切る力を伸ばす優先度が高いため。",
-
-      growth: {
-        previousMr: 1450,
-        currentMr: 1520,
-        completedTasks: 4,
-        coachingCount: 7,
-
-        skills: [
-          {
-            name: "対空",
-            previous: 3,
-            current: 4,
-          },
-          {
-            name: "確反",
-            previous: 3,
-            current: 4,
-          },
-          {
-            name: "ゲージ管理",
-            previous: 2,
-            current: 4,
-          },
-          {
-            name: "リーサル判断",
-            previous: 2,
-            current: 3,
-          },
-        ],
-      },
-
-      coachingHistory: [
-        {
-          id: 1,
-          date: "2026/08/18",
-          content: "リーサル判断とゲージ管理を確認",
-        },
-      ],
-    },
-  ];
-
-  const student = students.find(
-    (student) => student.id === Number(id)
-  );
+        <button
+          className="cancel-button"
+          onClick={() => navigate("/students")}
+        >
+          生徒一覧に戻る
+        </button>
+      </div>
+    );
+  }
 
   if (!student) {
     return (
@@ -282,7 +136,7 @@ function StudentDetail() {
         <h2>生徒が見つかりません</h2>
 
         <button
-          className="primary-button"
+          className="cancel-button"
           onClick={() => navigate("/students")}
         >
           生徒一覧に戻る
@@ -293,18 +147,31 @@ function StudentDetail() {
 
   return (
     <div>
+      {/* ヘッダー */}
       <header>
         <div>
           <h2>{student.name}</h2>
+
           <p>コーチ用 生徒詳細</p>
         </div>
 
-        <button
-          className="cancel-button"
-          onClick={() => navigate("/students")}
-        >
-          生徒一覧に戻る
-        </button>
+        <div className="header-actions">
+          <button
+            className="cancel-button"
+            onClick={() =>
+              navigate("/students")
+            }
+          >
+            生徒一覧に戻る
+          </button>
+
+          <button
+            className="delete-button"
+            onClick={handleDelete}
+          >
+            生徒を削除
+          </button>
+        </div>
       </header>
 
       {/* 基本情報 */}
@@ -315,7 +182,10 @@ function StudentDetail() {
 
         <div className="student-detail-grid">
           <div>
-            <span className="detail-label">プレイヤー名</span>
+            <span className="detail-label">
+              プレイヤー名
+            </span>
+
             <strong>{student.name}</strong>
           </div>
 
@@ -323,184 +193,52 @@ function StudentDetail() {
             <span className="detail-label">
               スト6 プレイヤーID
             </span>
-            <strong>{student.playerId}</strong>
+
+            <strong>
+              {student.player_id || "-"}
+            </strong>
           </div>
 
           <div>
-            <span className="detail-label">担当コーチ</span>
-            <strong>{student.coach}</strong>
+            <span className="detail-label">
+              担当コーチ
+            </span>
+
+            <strong>
+              {student.coach || "-"}
+            </strong>
           </div>
 
           <div>
             <span className="detail-label">
               使用キャラクター
             </span>
-            <strong>{student.character}</strong>
+
+            <strong>
+              {student.character || "-"}
+            </strong>
           </div>
 
           <div>
-            <span className="detail-label">ランク</span>
-            <strong>{student.rank}</strong>
+            <span className="detail-label">
+              ランク
+            </span>
+
+            <strong>
+              {student.rank || "-"}
+            </strong>
           </div>
 
           <div>
-            <span className="detail-label">MR</span>
-            <strong>{student.mr}</strong>
+            <span className="detail-label">
+              MR
+            </span>
+
+            <strong>
+              {student.mr ?? "-"}
+            </strong>
           </div>
         </div>
-      </section>
-
-      {/* 成長サマリー */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>成長サマリー</h3>
-        </div>
-
-        <div className="growth-summary">
-          <div className="growth-card">
-            <span>MR</span>
-
-            {student.growth.currentMr !== null ? (
-              <>
-                <strong>
-                  {student.growth.previousMr} →{" "}
-                  {student.growth.currentMr}
-                </strong>
-
-                <p className="growth-positive">
-                  +
-                  {student.growth.currentMr -
-                    student.growth.previousMr}
-                </p>
-              </>
-            ) : (
-              <strong>MASTER到達前</strong>
-            )}
-          </div>
-
-          <div className="growth-card">
-            <span>達成した課題</span>
-            <strong>{student.growth.completedTasks}</strong>
-            <p>件</p>
-          </div>
-
-          <div className="growth-card">
-            <span>コーチング回数</span>
-            <strong>{student.growth.coachingCount}</strong>
-            <p>回</p>
-          </div>
-        </div>
-
-        <div className="skill-growth">
-          <h4>スキルの成長</h4>
-
-          {student.growth.skills.map((skill) => {
-            const difference =
-              skill.current - skill.previous;
-
-            return (
-              <div className="skill-row" key={skill.name}>
-                <span className="skill-name">
-                  {skill.name}
-                </span>
-
-                <span className="stars">
-                  {"★".repeat(skill.previous)}
-                  {"☆".repeat(5 - skill.previous)}
-                </span>
-
-                <span>→</span>
-
-                <span className="stars">
-                  {"★".repeat(skill.current)}
-                  {"☆".repeat(5 - skill.current)}
-                </span>
-
-                {difference > 0 && (
-                  <span className="growth-positive">
-                    +{difference}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 生徒の自己分析 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>生徒の自己分析</h3>
-        </div>
-
-        <div className="analysis-grid">
-          <div className="analysis-block">
-            <h4>長所だと思っていること</h4>
-
-            <ul>
-              {student.selfAnalysis.strengths.map(
-                (item, index) => (
-                  <li key={index}>{item}</li>
-                )
-              )}
-            </ul>
-          </div>
-
-          <div className="analysis-block">
-            <h4>苦手だと思っていること</h4>
-
-            <ul>
-              {student.selfAnalysis.weaknesses.map(
-                (item, index) => (
-                  <li key={index}>{item}</li>
-                )
-              )}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* コーチ分析 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>コーチ分析</h3>
-        </div>
-
-        <div className="analysis-grid">
-          <div className="analysis-block">
-            <h4>長所</h4>
-
-            <ul>
-              {student.coachAnalysis.strengths.map(
-                (item, index) => (
-                  <li key={index}>{item}</li>
-                )
-              )}
-            </ul>
-          </div>
-
-          <div className="analysis-block">
-            <h4>改善ポイント</h4>
-
-            <ul>
-              {student.coachAnalysis.improvementPoints.map(
-                (item, index) => (
-                  <li key={index}>{item}</li>
-                )
-              )}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* 現在の重点課題 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>現在の重点課題</h3>
-        </div>
-
-        <h4>{student.task}</h4>
-        <p>{student.taskReason}</p>
       </section>
 
       {/* 目標 */}
@@ -509,7 +247,7 @@ function StudentDetail() {
           <h3>目標</h3>
         </div>
 
-        <p>{student.goal}</p>
+        <p>{student.goal || "未設定"}</p>
       </section>
 
       {/* コーチング要望 */}
@@ -518,50 +256,138 @@ function StudentDetail() {
           <h3>コーチング要望</h3>
         </div>
 
-        <p>{student.request}</p>
+        <p>{student.request || "未設定"}</p>
       </section>
 
-      {/* プレイ可能時間 */}
+      {/* 現在の課題 */}
+      <section className="content-card">
+        <div className="section-title">
+          <h3>現在の課題</h3>
+        </div>
+
+        <p>{student.task || "未設定"}</p>
+      </section>
+
+      {/* 時間 */}
       <section className="content-card">
         <div className="section-title">
           <h3>ゲームをプレイできる時間</h3>
         </div>
 
-        <p>{student.gameAvailability}</p>
+        <p>
+          {student.game_availability ||
+            "未設定"}
+        </p>
       </section>
 
-      {/* コーチング可能時間 */}
       <section className="content-card">
         <div className="section-title">
-          <h3>コーチングを受けられる時間</h3>
+          <h3>
+            コーチングを受けられる時間
+          </h3>
         </div>
 
-        <p>{student.coachingAvailability}</p>
+        <p>
+          {student.coaching_availability ||
+            "未設定"}
+        </p>
       </section>
 
       {/* コーチング履歴 */}
       <section className="content-card">
         <div className="section-title">
-          <h3>コーチング履歴</h3>
+          <div>
+            <h3>コーチング履歴</h3>
+
+            <span>
+              {coachingRecords.length}件
+            </span>
+          </div>
 
           <button
             className="primary-button"
             onClick={() =>
-              navigate(`/students/${student.id}/coaching/new`)
+              navigate(
+                `/students/${student.id}/coaching/new`
+              )
             }
           >
             ＋ コーチング記録
           </button>
         </div>
 
-        {student.coachingHistory.map((history) => (
-          <div className="coaching-item" key={history.id}>
-            <div>
-              <strong>{history.date}</strong>
-              <p>{history.content}</p>
-            </div>
+        {coachingRecords.length === 0 ? (
+          <p>
+            まだコーチング記録がありません。
+          </p>
+        ) : (
+          <div className="coaching-history">
+            {coachingRecords.map((record) => (
+              <div
+                className="coaching-record"
+                key={record.id}
+              >
+                <div className="coaching-record-header">
+                  <div>
+                    <strong>
+                      {record.date}
+                    </strong>
+
+                    <span>
+                      {record.coach || ""}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="coaching-record-content">
+                  <div>
+                    <h4>対戦内容</h4>
+
+                    <p>
+                      {record.match_content ||
+                        "-"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4>良かった点</h4>
+
+                    <p>
+                      {record.good_points ||
+                        "-"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4>改善ポイント</h4>
+
+                    <p>
+                      {record.improvement_points ||
+                        "-"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4>次回までの課題</h4>
+
+                    <p>
+                      {record.next_task ||
+                        "-"}
+                    </p>
+                  </div>
+
+                  {record.memo && (
+                    <div>
+                      <h4>コーチメモ</h4>
+
+                      <p>{record.memo}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </section>
     </div>
   );

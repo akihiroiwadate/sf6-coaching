@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 function CoachingNew() {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@ function CoachingNew() {
     memo: "",
   });
 
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -22,13 +26,33 @@ function CoachingNew() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("コーチング記録", {
-      studentId: id,
-      ...form,
-    });
+    setSaving(true);
+    setErrorMessage("");
+
+    const { error } = await supabase
+      .from("coaching_records")
+      .insert([
+        {
+          student_id: Number(id),
+          coach: form.coach,
+          date: form.date,
+          match_content: form.matchContent,
+          good_points: form.goodPoints,
+          improvement_points: form.improvementPoints,
+          next_task: form.nextTask,
+          memo: form.memo,
+        },
+      ]);
+
+    if (error) {
+      console.error("登録エラー:", error);
+      setErrorMessage(error.message);
+      setSaving(false);
+      return;
+    }
 
     alert("コーチング記録を登録しました");
 
@@ -45,9 +69,13 @@ function CoachingNew() {
       </header>
 
       <section className="content-card">
-        <form className="student-form" onSubmit={handleSubmit}>
+        <form
+          className="student-form"
+          onSubmit={handleSubmit}
+        >
           <div className="form-group">
             <label>実施日</label>
+
             <input
               type="date"
               name="date"
@@ -59,85 +87,98 @@ function CoachingNew() {
 
           <div className="form-group">
             <label>担当コーチ</label>
-            <select
+
+            <input
+              type="text"
               name="coach"
               value={form.coach}
               onChange={handleChange}
-              required
-            >
-              <option value="">選択してください</option>
-              <option value="Coach A">Coach A</option>
-              <option value="Coach B">Coach B</option>
-              <option value="Coach C">Coach C</option>
-            </select>
+              placeholder="例：Coach A"
+            />
           </div>
 
           <div className="form-group">
             <label>対戦内容</label>
+
             <textarea
               name="matchContent"
               value={form.matchContent}
               onChange={handleChange}
-              placeholder="例：ランクマのリプレイを3試合確認"
               rows="3"
+              placeholder="例：ランクマのリプレイを3試合確認"
             />
           </div>
 
           <div className="form-group">
             <label>良かった点</label>
+
             <textarea
               name="goodPoints"
               value={form.goodPoints}
               onChange={handleChange}
-              placeholder="例：確反が安定していた"
               rows="4"
+              placeholder="例：確反が安定していた"
             />
           </div>
 
           <div className="form-group">
             <label>改善点</label>
+
             <textarea
               name="improvementPoints"
               value={form.improvementPoints}
               onChange={handleChange}
-              placeholder="例：飛びを通される回数が多かった"
               rows="4"
+              placeholder="例：飛びを通される回数が多かった"
             />
           </div>
 
           <div className="form-group">
             <label>次回までの課題</label>
+
             <textarea
               name="nextTask"
               value={form.nextTask}
               onChange={handleChange}
-              placeholder="例：ランクマ10試合で対空を意識する"
               rows="4"
+              placeholder="例：ランクマ10試合で対空を意識する"
             />
           </div>
 
           <div className="form-group">
             <label>メモ</label>
+
             <textarea
               name="memo"
               value={form.memo}
               onChange={handleChange}
-              placeholder="その他のメモ"
               rows="4"
             />
           </div>
+
+          {errorMessage && (
+            <p className="error-message">
+              登録に失敗しました：{errorMessage}
+            </p>
+          )}
 
           <div className="form-actions">
             <button
               type="button"
               className="cancel-button"
-              onClick={() => navigate(`/students/${id}`)}
+              onClick={() =>
+                navigate(`/students/${id}`)
+              }
             >
               キャンセル
             </button>
 
-            <button type="submit" className="primary-button">
-              登録する
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={saving}
+            >
+              {saving ? "登録中..." : "登録する"}
             </button>
           </div>
         </form>
