@@ -1,378 +1,821 @@
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import {
+  Link,
+} from "react-router-dom";
 
-function CoachDashboard() {
-  const navigate = useNavigate();
+import {
+  supabase,
+} from "../supabase";
 
-  // 開発確認用
-  const coachName = "Coach A";
+import "../styles/coaching.css";
 
-  const [coach, setCoach] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [coachingRecords, setCoachingRecords] = useState([]);
 
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+const COACHING_TYPE_LABELS = {
+  online: "オンライン",
+  offline: "オフライン",
+  replay: "リプレイのみ",
+};
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
 
-  async function fetchDashboardData() {
-    setLoading(true);
-    setErrorMessage("");
-
-    // コーチ情報取得
-    const { data: coachData, error: coachError } = await supabase
-      .from("coaches")
-      .select("*")
-      .eq("name", coachName)
-      .maybeSingle();
-
-    if (coachError) {
-      setErrorMessage(coachError.message);
-      setLoading(false);
-      return;
-    }
-
-    setCoach(coachData);
-
-    // 担当生徒取得
-    const { data: studentData, error: studentError } = await supabase
-      .from("students")
-      .select("*")
-      .eq("coach", coachName)
-      .order("id", { ascending: true });
-
-    if (studentError) {
-      setErrorMessage(studentError.message);
-      setLoading(false);
-      return;
-    }
-
-    const fetchedStudents = studentData ?? [];
-    setStudents(fetchedStudents);
-
-    // 担当生徒がいない場合
-    if (fetchedStudents.length === 0) {
-      setCoachingRecords([]);
-      setLoading(false);
-      return;
-    }
-
-    const studentIds = fetchedStudents.map((student) => student.id);
-
-    // コーチング履歴取得
-    const { data: recordData, error: recordError } = await supabase
-      .from("coaching_records")
-      .select("*")
-      .in("student_id", studentIds)
-      .order("date", { ascending: false });
-
-    if (recordError) {
-      setErrorMessage(recordError.message);
-    } else {
-      setCoachingRecords(recordData ?? []);
-    }
-
-    setLoading(false);
+function formatDate(
+  value
+) {
+  if (!value) {
+    return "未指定";
   }
 
-  // 生徒名取得
-  function getStudentName(studentId) {
-    const student = students.find((student) => student.id === studentId);
-    return student?.name ?? "-";
-  }
 
-  // コーチング回数
-  function getCoachingCount(studentId) {
-    return coachingRecords.filter(
-      (record) => record.student_id === studentId
-    ).length;
-  }
-
-  // 最新コーチング日
-  function getLatestCoachingDate(studentId) {
-    const records = coachingRecords.filter(
-      (record) => record.student_id === studentId
+  const date =
+    new Date(
+      `${value}T00:00:00`
     );
 
-    if (records.length === 0) {
-      return "-";
-    }
 
-    return records[0].date;
+  return date.toLocaleDateString(
+    "ja-JP",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+  );
+}
+
+
+function formatDateTime(
+  value
+) {
+  if (!value) {
+    return "-";
   }
+
+
+  const date =
+    new Date(value);
+
+
+  return date.toLocaleString(
+    "ja-JP",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
+}
+
+
+function getStudentName(
+  item
+) {
+  return (
+    item.students?.name ||
+    `生徒ID：${item.student_id}`
+  );
+}
+
+
+function getPreferredDateTime(
+  item
+) {
+  const date =
+    formatDate(
+      item.preferred_date
+    );
+
+
+  const time =
+    item.preferred_time
+      ? item.preferred_time.slice(
+          0,
+          5
+        )
+      : "";
+
+
+  return time
+    ? `${date} ${time}`
+    : date;
+}
+
+
+function CoachDashboard() {
+  const [
+    acceptedRequests,
+    setAcceptedRequests,
+  ] = useState([]);
+
+  const [
+    completedRequests,
+    setCompletedRequests,
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  const coachId =
+    localStorage.getItem(
+      "coachId"
+    );
+
+  const coachName =
+    localStorage.getItem(
+      "coachName"
+    );
+
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+
+  async function loadRequests() {
+    try {
+      setLoading(true);
+      setError("");
+
+
+      if (!coachId) {
+        setAcceptedRequests(
+          []
+        );
+
+        setCompletedRequests(
+          []
+        );
+
+        setError(
+          "ログイン中のコーチIDを取得できません。ログアウトして、もう一度コーチでログインしてください。"
+        );
+
+        return;
+      }
+
+
+      /*
+       * =========================
+       * 担当中
+       * =========================
+       */
+
+      const {
+        data: acceptedData,
+        error: acceptedError,
+      } =
+        await supabase
+          .from(
+            "coaching_requests"
+          )
+          .select(`
+            id,
+            student_id,
+            coaching_type,
+            preferred_date,
+            preferred_time,
+            request,
+            replay_id,
+            replay_image_path,
+            status,
+            coach_id,
+            accepted_at,
+            created_at,
+            students (
+              id,
+              name
+            )
+          `)
+          .eq(
+            "status",
+            "accepted"
+          )
+          .eq(
+            "coach_id",
+            Number(
+              coachId
+            )
+          )
+          .order(
+            "accepted_at",
+            {
+              ascending: true,
+            }
+          );
+
+
+      if (acceptedError) {
+        throw acceptedError;
+      }
+
+
+      setAcceptedRequests(
+        acceptedData || []
+      );
+
+
+      /*
+       * =========================
+       * 完了済み
+       * =========================
+       */
+
+      const {
+        data: completedData,
+        error: completedError,
+      } =
+        await supabase
+          .from(
+            "coaching_requests"
+          )
+          .select(`
+            id,
+            student_id,
+            coaching_type,
+            preferred_date,
+            preferred_time,
+            request,
+            replay_id,
+            replay_image_path,
+            status,
+            coach_id,
+            accepted_at,
+            created_at,
+            updated_at,
+            students (
+              id,
+              name
+            )
+          `)
+          .eq(
+            "status",
+            "completed"
+          )
+          .eq(
+            "coach_id",
+            Number(
+              coachId
+            )
+          )
+          .order(
+            "updated_at",
+            {
+              ascending: false,
+            }
+          )
+          .limit(10);
+
+
+      if (completedError) {
+        throw completedError;
+      }
+
+
+      setCompletedRequests(
+        completedData || []
+      );
+
+    } catch (err) {
+      console.error(
+        "担当コーチング取得エラー:",
+        err
+      );
+
+
+      setError(
+        `コーチング情報の取得に失敗しました。${
+          err?.message
+            ? ` ${err.message}`
+            : ""
+        }`
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   if (loading) {
-    return <p>読み込み中...</p>;
-  }
-
-  if (errorMessage) {
     return (
       <div>
-        <h2>データ取得エラー</h2>
-        <p>{errorMessage}</p>
+
+        <header>
+
+          <div>
+
+            <h2>
+              担当コーチング
+            </h2>
+
+            <p>
+              担当情報を
+              読み込んでいます
+            </p>
+
+          </div>
+
+        </header>
+
       </div>
     );
   }
 
-  const studentsWithCoachTask = students.filter(
-    (student) => student.task && student.task.trim() !== ""
-  );
-
-  const studentsWithSelfTask = students.filter(
-    (student) => student.self_task && student.self_task.trim() !== ""
-  );
 
   return (
     <div>
-      {/* ヘッダー */}
+
       <header>
+
         <div>
-          <h2>コーチダッシュボード</h2>
-          <p>{coach?.name || coachName} さんの担当状況</p>
+
+          <h2>
+            担当コーチング
+          </h2>
+
+          <p>
+            {coachName
+              ? `${coachName}さんが担当しているコーチングです`
+              : "あなたが担当しているコーチングです"}
+          </p>
+
         </div>
+
       </header>
 
-      {/* サマリー */}
-      <section className="stats">
-        <div className="stat-card">
-          <span>担当生徒</span>
-          <strong>{students.length}</strong>
-          <small>人</small>
-        </div>
+
+      {error && (
+        <p className="error-message">
+          {error}
+        </p>
+      )}
+
+
+      {/* =====================
+          サマリー
+      ===================== */}
+
+      <div className="stats">
 
         <div className="stat-card">
-          <span>コーチング記録</span>
-          <strong>{coachingRecords.length}</strong>
-          <small>件</small>
+
+          <span>
+            担当中
+          </span>
+
+          <strong>
+            {
+              acceptedRequests.length
+            }
+          </strong>
+
+          <small>
+            件
+          </small>
+
         </div>
+
 
         <div className="stat-card">
-          <span>生徒が設定した課題</span>
-          <strong>{studentsWithSelfTask.length}</strong>
-          <small>人</small>
-        </div>
-      </section>
 
-      {/* 担当生徒 */}
+          <span>
+            完了
+          </span>
+
+          <strong>
+            {
+              completedRequests.length
+            }
+          </strong>
+
+          <small>
+            件
+          </small>
+
+        </div>
+
+      </div>
+
+
+      {/* =====================
+          担当中
+      ===================== */}
+
       <section className="content-card">
+
         <div className="section-title">
-          <h3>担当生徒</h3>
-          <span>{students.length}人</span>
+
+          <div>
+
+            <h3>
+              対応中のコーチング
+            </h3>
+
+            <p>
+              受諾済みで、
+              これから対応するコーチングです
+            </p>
+
+          </div>
+
+
+          <span>
+            {
+              acceptedRequests.length
+            }
+            件
+          </span>
+
         </div>
 
-        {students.length === 0 ? (
-          <p>担当生徒はいません。</p>
+
+        {acceptedRequests.length ===
+        0 ? (
+
+          <div
+            style={{
+              padding:
+                "40px 20px",
+              textAlign:
+                "center",
+            }}
+          >
+
+            <p>
+              現在、担当中の
+              コーチングはありません。
+            </p>
+
+          </div>
+
         ) : (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>プレイヤー</th>
-                  <th>キャラクター</th>
-                  <th>ランク</th>
-                  <th>MR</th>
-                  <th>コーチング</th>
-                  <th>前回</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
 
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td>
-                      <button
-                        className="student-link"
-                        onClick={() =>
-                          navigate(`/students/${student.id}`)
-                        }
-                      >
-                        {student.name}
-                      </button>
-                    </td>
+          <div className="coaching-history">
 
-                    <td>{student.character || "-"}</td>
+            {acceptedRequests.map(
+              (item) => {
 
-                    <td>
-                      <span className="rank">
-                        {student.rank || "-"}
-                      </span>
-                    </td>
+                const studentName =
+                  getStudentName(
+                    item
+                  );
 
-                    <td>{student.mr ?? "-"}</td>
 
-                    <td>{getCoachingCount(student.id)}回</td>
+                return (
+                  <div
+                    key={
+                      item.id
+                    }
+                    className="coaching-record"
+                  >
 
-                    <td>{getLatestCoachingDate(student.id)}</td>
+                    <div className="coaching-record-header">
 
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          className="text-button"
-                          onClick={() =>
-                            navigate(`/students/${student.id}`)
+                      <div>
+
+                        <strong>
+                          {
+                            studentName
                           }
-                        >
-                          詳細
-                        </button>
+                        </strong>
 
-                        <button
-                          className="primary-button"
-                          onClick={() =>
-                            navigate(
-                              `/students/${student.id}/coaching/new`
+
+                        <span>
+                          担当中
+                        </span>
+
+
+                        <span>
+                          {
+                            COACHING_TYPE_LABELS[
+                              item.coaching_type
+                            ] ||
+                            item.coaching_type
+                          }
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="coaching-record-content">
+
+                      <div>
+
+                        <h4>
+                          希望日時
+                        </h4>
+
+                        <p>
+                          {
+                            getPreferredDateTime(
+                              item
                             )
                           }
-                        >
-                          コーチング開始
-                        </button>
+                        </p>
+
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+
+                      <div>
+
+                        <h4>
+                          リプレイID
+                        </h4>
+
+                        <p>
+                          {item.replay_id ||
+                            "なし"}
+                        </p>
+
+                      </div>
+
+
+                      <div
+                        style={{
+                          gridColumn:
+                            "1 / -1",
+                        }}
+                      >
+
+                        <h4>
+                          相談内容
+                        </h4>
+
+                        <p
+                          style={{
+                            whiteSpace:
+                              "pre-wrap",
+                          }}
+                        >
+                          {
+                            item.request
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "flex-end",
+                        alignItems:
+                          "center",
+                        gap:
+                          "12px",
+                        padding:
+                          "16px 20px",
+                        borderTop:
+                          "1px solid #e4e4e7",
+                      }}
+                    >
+
+                      <Link
+                        to={`/students/${item.student_id}`}
+                        className="cancel-button"
+                      >
+                        生徒情報を見る
+                      </Link>
+
+
+                      <Link
+                        to={`/students/${item.student_id}/coaching/new?requestId=${item.id}`}
+                        className="primary-button"
+                      >
+                        結果を入力
+                      </Link>
+
+                    </div>
+
+                  </div>
+                );
+              }
+            )}
+
           </div>
         )}
+
       </section>
 
-      {/* 生徒自身の課題 */}
+
+      {/* =====================
+          完了済み
+      ===================== */}
+
       <section className="content-card">
+
         <div className="section-title">
-          <h3>生徒が設定した課題</h3>
-          <span>{studentsWithSelfTask.length}人</span>
+
+          <div>
+
+            <h3>
+              完了したコーチング
+            </h3>
+
+            <p>
+              過去にあなたが
+              対応したコーチングです
+            </p>
+
+          </div>
+
+
+          <span>
+            {
+              completedRequests.length
+            }
+            件
+          </span>
+
         </div>
 
-        {studentsWithSelfTask.length === 0 ? (
-          <p>生徒が設定した課題はありません。</p>
+
+        {completedRequests.length ===
+        0 ? (
+
+          <div
+            style={{
+              padding:
+                "40px 20px",
+              textAlign:
+                "center",
+            }}
+          >
+
+            <p>
+              まだ完了した
+              コーチングはありません。
+            </p>
+
+          </div>
+
         ) : (
-          studentsWithSelfTask.map((student) => (
-            <div className="coach-alert" key={student.id}>
-              <div>
-                <strong>{student.name}</strong>
-                <p>{student.self_task}</p>
-              </div>
 
-              <div className="table-actions">
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    navigate(`/students/${student.id}`)
-                  }
-                >
-                  詳細
-                </button>
+          <div className="coaching-history">
 
-                <button
-                  className="primary-button"
-                  onClick={() =>
-                    navigate(
-                      `/students/${student.id}/coaching/new`
-                    )
-                  }
-                >
-                  開始
-                </button>
-              </div>
-            </div>
-          ))
+            {completedRequests.map(
+              (item) => {
+
+                const studentName =
+                  getStudentName(
+                    item
+                  );
+
+
+                return (
+                  <div
+                    key={
+                      item.id
+                    }
+                    className="coaching-record"
+                  >
+
+                    <div className="coaching-record-header">
+
+                      <div>
+
+                        <strong>
+                          {
+                            studentName
+                          }
+                        </strong>
+
+
+                        <span>
+                          完了
+                        </span>
+
+
+                        <span>
+                          {
+                            COACHING_TYPE_LABELS[
+                              item.coaching_type
+                            ] ||
+                            item.coaching_type
+                          }
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="coaching-record-content">
+
+                      <div>
+
+                        <h4>
+                          希望日時
+                        </h4>
+
+                        <p>
+                          {
+                            getPreferredDateTime(
+                              item
+                            )
+                          }
+                        </p>
+
+                      </div>
+
+
+                      <div>
+
+                        <h4>
+                          完了日時
+                        </h4>
+
+                        <p>
+                          {
+                            formatDateTime(
+                              item.updated_at
+                            )
+                          }
+                        </p>
+
+                      </div>
+
+
+                      <div
+                        style={{
+                          gridColumn:
+                            "1 / -1",
+                        }}
+                      >
+
+                        <h4>
+                          相談内容
+                        </h4>
+
+                        <p
+                          style={{
+                            whiteSpace:
+                              "pre-wrap",
+                          }}
+                        >
+                          {
+                            item.request
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "flex-end",
+                        padding:
+                          "16px 20px",
+                        borderTop:
+                          "1px solid #e4e4e7",
+                      }}
+                    >
+
+                      <Link
+                        to={`/students/${item.student_id}`}
+                        className="cancel-button"
+                      >
+                        生徒情報を見る
+                      </Link>
+
+                    </div>
+
+                  </div>
+                );
+              }
+            )}
+
+          </div>
         )}
+
       </section>
 
-      {/* コーチからの課題 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>コーチからの課題</h3>
-          <span>{studentsWithCoachTask.length}人</span>
-        </div>
-
-        {studentsWithCoachTask.length === 0 ? (
-          <p>課題が設定されていません。</p>
-        ) : (
-          studentsWithCoachTask.map((student) => (
-            <div className="coach-alert" key={student.id}>
-              <div>
-                <strong>{student.name}</strong>
-                <p>{student.task}</p>
-              </div>
-
-              <div className="table-actions">
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    navigate(`/students/${student.id}`)
-                  }
-                >
-                  詳細
-                </button>
-
-                <button
-                  className="primary-button"
-                  onClick={() =>
-                    navigate(
-                      `/students/${student.id}/coaching/new`
-                    )
-                  }
-                >
-                  開始
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </section>
-
-      {/* 最近のコーチング */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>最近のコーチング</h3>
-          <span>{coachingRecords.length}件</span>
-        </div>
-
-        {coachingRecords.length === 0 ? (
-          <p>まだコーチング記録がありません。</p>
-        ) : (
-          coachingRecords.slice(0, 5).map((record) => (
-            <div className="coaching-item" key={record.id}>
-              <div>
-                <strong>
-                  {record.date} / {getStudentName(record.student_id)}
-                </strong>
-                <p>{record.match_content || "内容未登録"}</p>
-              </div>
-
-              <div className="table-actions">
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    navigate(`/students/${record.student_id}`)
-                  }
-                >
-                  詳細
-                </button>
-
-                <button
-                  className="primary-button"
-                  onClick={() =>
-                    navigate(
-                      `/students/${record.student_id}/coaching/new`
-                    )
-                  }
-                >
-                  再コーチング
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </section>
     </div>
   );
 }
+
 
 export default CoachDashboard;

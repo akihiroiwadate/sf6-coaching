@@ -1,460 +1,335 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-function Dashboard() {
-  const navigate = useNavigate();
+import {
+  Link,
+} from "react-router-dom";
 
-  const [students, setStudents] = useState([]);
-  const [coaches, setCoaches] = useState([]);
-  const [coachingRecords, setCoachingRecords] = useState([]);
+import {
+  supabase,
+} from "../supabase";
 
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+export default function Dashboard() {
+  const [
+    studentCount,
+    setStudentCount,
+  ] = useState(0);
+
+  const [
+    coachCount,
+    setCoachCount,
+  ] = useState(0);
+
+  const [
+    pendingCount,
+    setPendingCount,
+  ] = useState(0);
+
+  const [
+    acceptedCount,
+    setAcceptedCount,
+  ] = useState(0);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
 
   useEffect(() => {
-    fetchDashboardData();
+    loadDashboard();
   }, []);
 
-  async function fetchDashboardData() {
-    setLoading(true);
-    setErrorMessage("");
+  const loadDashboard =
+    async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-    // 生徒取得
-    const {
-      data: studentData,
-      error: studentError,
-    } = await supabase
-      .from("students")
-      .select("*")
-      .order("id", { ascending: true });
+        const [
+          studentsResult,
+          coachesResult,
+          pendingResult,
+          acceptedResult,
+        ] =
+          await Promise.all([
+            supabase
+              .from("students")
+              .select("*", {
+                count: "exact",
+                head: true,
+              }),
 
-    if (studentError) {
-      console.error("生徒取得エラー:", studentError);
-      setErrorMessage(studentError.message);
-      setLoading(false);
-      return;
-    }
+            supabase
+              .from("coaches")
+              .select("*", {
+                count: "exact",
+                head: true,
+              }),
 
-    // コーチ取得
-    const {
-      data: coachData,
-      error: coachError,
-    } = await supabase
-      .from("coaches")
-      .select("*")
-      .order("id", { ascending: true });
+            supabase
+              .from(
+                "coaching_requests"
+              )
+              .select("*", {
+                count: "exact",
+                head: true,
+              })
+              .eq(
+                "status",
+                "pending"
+              ),
 
-    if (coachError) {
-      console.error("コーチ取得エラー:", coachError);
-      setErrorMessage(coachError.message);
-      setLoading(false);
-      return;
-    }
+            supabase
+              .from(
+                "coaching_requests"
+              )
+              .select("*", {
+                count: "exact",
+                head: true,
+              })
+              .eq(
+                "status",
+                "accepted"
+              ),
+          ]);
 
-    // コーチング記録取得
-    const {
-      data: recordData,
-      error: recordError,
-    } = await supabase
-      .from("coaching_records")
-      .select("*")
-      .order("date", { ascending: false });
+        if (
+          studentsResult.error
+        ) {
+          throw studentsResult.error;
+        }
 
-    if (recordError) {
-      console.error(
-        "コーチング記録取得エラー:",
-        recordError
-      );
+        if (
+          coachesResult.error
+        ) {
+          throw coachesResult.error;
+        }
 
-      setErrorMessage(recordError.message);
-      setLoading(false);
-      return;
-    }
+        if (
+          pendingResult.error
+        ) {
+          throw pendingResult.error;
+        }
 
-    setStudents(studentData ?? []);
-    setCoaches(coachData ?? []);
-    setCoachingRecords(recordData ?? []);
+        if (
+          acceptedResult.error
+        ) {
+          throw acceptedResult.error;
+        }
 
-    setLoading(false);
-  }
+        setStudentCount(
+          studentsResult.count || 0
+        );
+
+        setCoachCount(
+          coachesResult.count || 0
+        );
+
+        setPendingCount(
+          pendingResult.count || 0
+        );
+
+        setAcceptedCount(
+          acceptedResult.count || 0
+        );
+      } catch (err) {
+        console.error(err);
+
+        setError(
+          `ダッシュボードの取得に失敗しました。${
+            err?.message
+              ? ` ${err.message}`
+              : ""
+          }`
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   if (loading) {
-    return <p>読み込み中...</p>;
-  }
-
-  if (errorMessage) {
     return (
       <div>
-        <h2>データ取得エラー</h2>
-        <p>{errorMessage}</p>
+        <header>
+          <div>
+            <h2>
+              管理者ダッシュボード
+            </h2>
+
+            <p>
+              データを読み込んでいます
+            </p>
+          </div>
+        </header>
       </div>
     );
   }
 
-  // 課題が設定されている生徒
-  const studentsWithTasks = students.filter(
-    (student) =>
-      student.task &&
-      student.task.trim() !== ""
-  );
-
-  // 担当コーチが設定されていない生徒
-  const studentsWithoutCoach = students.filter(
-    (student) =>
-      !student.coach ||
-      student.coach.trim() === ""
-  );
-
-  // 生徒名取得
-  function getStudentName(studentId) {
-    const student = students.find(
-      (student) => student.id === studentId
-    );
-
-    return student?.name ?? "-";
-  }
-
   return (
     <div>
-      {/* ヘッダー */}
       <header>
         <div>
-          <h2>ダッシュボード</h2>
+          <h2>
+            管理者ダッシュボード
+          </h2>
+
           <p>
-            SF6コーチング全体の状況を確認できます
+            SF6 Coachingの運営状況を
+            確認できます
           </p>
-        </div>
-
-        <div className="header-actions">
-          <button
-            className="cancel-button"
-            onClick={() => navigate("/coaches/new")}
-          >
-            ＋ コーチを追加
-          </button>
-
-          <button
-            className="primary-button"
-            onClick={() => navigate("/students/new")}
-          >
-            ＋ 生徒を追加
-          </button>
         </div>
       </header>
 
-      {/* サマリー */}
-      <section className="stats">
+      {error && (
+        <p className="error-message">
+          {error}
+        </p>
+      )}
+
+      <div className="stats">
         <div className="stat-card">
-          <span>生徒数</span>
-
-          <strong>{students.length}</strong>
-
-          <small>人</small>
-        </div>
-
-        <div className="stat-card">
-          <span>コーチ数</span>
-
-          <strong>{coaches.length}</strong>
-
-          <small>人</small>
-        </div>
-
-        <div className="stat-card">
-          <span>コーチング記録</span>
+          <span>
+            登録生徒
+          </span>
 
           <strong>
-            {coachingRecords.length}
+            {studentCount}
           </strong>
 
-          <small>件</small>
-        </div>
-      </section>
-
-      {/* 要確認 */}
-      <section className="stats">
-        <div className="stat-card">
-          <span>課題あり</span>
-
-          <strong>
-            {studentsWithTasks.length}
-          </strong>
-
-          <small>人</small>
+          <small>
+            人
+          </small>
         </div>
 
         <div className="stat-card">
-          <span>担当コーチ未設定</span>
+          <span>
+            登録コーチ
+          </span>
 
           <strong>
-            {studentsWithoutCoach.length}
+            {coachCount}
           </strong>
 
-          <small>人</small>
+          <small>
+            人
+          </small>
         </div>
 
         <div className="stat-card">
-          <span>登録済みプレイヤー</span>
+          <span>
+            未受諾の申し込み
+          </span>
 
           <strong>
-            {
-              students.filter(
-                (student) => student.player_id
-              ).length
-            }
+            {pendingCount}
           </strong>
 
-          <small>人</small>
+          <small>
+            件
+          </small>
         </div>
-      </section>
+      </div>
 
-      {/* 生徒一覧 */}
       <section className="content-card">
         <div className="section-title">
-          <h3>生徒</h3>
-
-          <button
-            className="text-button"
-            onClick={() => navigate("/students")}
-          >
-            すべて見る
-          </button>
+          <h3>
+            コーチング状況
+          </h3>
         </div>
 
-        {students.length === 0 ? (
-          <p>
-            生徒が登録されていません。
-          </p>
-        ) : (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>プレイヤー</th>
-                  <th>担当コーチ</th>
-                  <th>使用キャラ</th>
-                  <th>ランク</th>
-                  <th>MR</th>
-                  <th>現在の課題</th>
-                </tr>
-              </thead>
+        <div className="student-detail-grid">
+          <div>
+            <span className="detail-label">
+              未受諾
+            </span>
 
-              <tbody>
-                {students
-                  .slice(0, 5)
-                  .map((student) => (
-                    <tr key={student.id}>
-                      <td>
-                        <button
-                          className="student-link"
-                          onClick={() =>
-                            navigate(
-                              `/students/${student.id}`
-                            )
-                          }
-                        >
-                          {student.name}
-                        </button>
-                      </td>
-
-                      <td>
-                        {student.coach || "-"}
-                      </td>
-
-                      <td>
-                        {student.character || "-"}
-                      </td>
-
-                      <td>
-                        <span className="rank">
-                          {student.rank || "-"}
-                        </span>
-                      </td>
-
-                      <td>
-                        {student.mr ?? "-"}
-                      </td>
-
-                      <td>
-                        {student.task || "-"}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <strong>
+              {pendingCount}件
+            </strong>
           </div>
-        )}
-      </section>
 
-      {/* コーチ一覧 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>コーチ</h3>
+          <div>
+            <span className="detail-label">
+              受諾済み
+            </span>
 
-          <button
-            className="text-button"
-            onClick={() => navigate("/coaches")}
-          >
-            すべて見る
-          </button>
-        </div>
-
-        {coaches.length === 0 ? (
-          <p>
-            コーチが登録されていません。
-          </p>
-        ) : (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>コーチ</th>
-                  <th>メインキャラ</th>
-                  <th>ランク</th>
-                  <th>MR</th>
-                  <th>得意分野</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {coaches
-                  .slice(0, 5)
-                  .map((coach) => (
-                    <tr key={coach.id}>
-                      <td>
-                        <button
-                          className="student-link"
-                          onClick={() =>
-                            navigate(
-                              `/coaches/${coach.id}`
-                            )
-                          }
-                        >
-                          {coach.name}
-                        </button>
-                      </td>
-
-                      <td>
-                        {coach.main_character || "-"}
-                      </td>
-
-                      <td>
-                        <span className="rank">
-                          {coach.rank || "-"}
-                        </span>
-                      </td>
-
-                      <td>
-                        {coach.mr ?? "-"}
-                      </td>
-
-                      <td>
-                        {coach.specialty || "-"}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <strong>
+              {acceptedCount}件
+            </strong>
           </div>
-        )}
+
+          <div>
+            <span className="detail-label">
+              合計
+            </span>
+
+            <strong>
+              {pendingCount +
+                acceptedCount}
+              件
+            </strong>
+          </div>
+        </div>
       </section>
 
-      {/* 最近のコーチング */}
       <section className="content-card">
         <div className="section-title">
-          <h3>最近のコーチング</h3>
+          <h3>
+            管理
+          </h3>
 
           <span>
-            {coachingRecords.length}件
+            管理する項目を選択
           </span>
         </div>
 
-        {coachingRecords.length === 0 ? (
-          <p>
-            まだコーチング記録がありません。
-          </p>
-        ) : (
-          coachingRecords
-            .slice(0, 5)
-            .map((record) => (
-              <div
-                className="coaching-item"
-                key={record.id}
-              >
-                <div>
-                  <strong>
-                    {record.date} /{" "}
-                    {getStudentName(
-                      record.student_id
-                    )}
-                  </strong>
+        <div className="coaching-item">
+          <div>
+            <strong>
+              生徒管理
+            </strong>
 
-                  <p>
-                    {record.match_content ||
-                      "内容未登録"}
-                  </p>
-                </div>
+            <p>
+              生徒の登録情報や
+              コーチング履歴を確認します
+            </p>
+          </div>
 
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    navigate(
-                      `/students/${record.student_id}`
-                    )
-                  }
-                >
-                  詳細
-                </button>
-              </div>
-            ))
-        )}
-      </section>
-
-      {/* 生徒の課題 */}
-      <section className="content-card">
-        <div className="section-title">
-          <h3>現在の課題</h3>
+          <Link
+            to="/students"
+            className="primary-button"
+          >
+            生徒を見る
+          </Link>
         </div>
 
-        {studentsWithTasks.length === 0 ? (
-          <p>
-            現在設定されている課題はありません。
-          </p>
-        ) : (
-          studentsWithTasks
-            .slice(0, 5)
-            .map((student) => (
-              <div
-                className="coach-alert"
-                key={student.id}
-              >
-                <div>
-                  <strong>
-                    {student.name}
-                  </strong>
+        <div className="coaching-item">
+          <div>
+            <strong>
+              コーチ管理
+            </strong>
 
-                  <p>
-                    {student.task}
-                  </p>
-                </div>
+            <p>
+              コーチの登録や
+              情報を管理します
+            </p>
+          </div>
 
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    navigate(
-                      `/students/${student.id}`
-                    )
-                  }
-                >
-                  確認する
-                </button>
-              </div>
-            ))
-        )}
+          <Link
+            to="/coaches"
+            className="primary-button"
+          >
+            コーチを見る
+          </Link>
+        </div>
       </section>
     </div>
   );
 }
-
-export default Dashboard;
