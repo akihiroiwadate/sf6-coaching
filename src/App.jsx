@@ -11,6 +11,7 @@ import {
 import "./styles/app.css";
 import "./styles/student.css";
 import "./styles/coach.css";
+import "./styles/admin.css";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";

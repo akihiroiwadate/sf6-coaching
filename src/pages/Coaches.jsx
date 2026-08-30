@@ -1,164 +1,350 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  supabase,
+} from "../lib/supabase";
+
+import "../styles/admin.css";
+
 
 function Coaches() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const [coaches, setCoaches] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [
+    coaches,
+    setCoaches,
+  ] = useState([]);
+
+  const [
+    students,
+    setStudents,
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
 
   useEffect(() => {
     fetchData();
   }, []);
 
+
   async function fetchData() {
     setLoading(true);
     setErrorMessage("");
 
-    // コーチ取得
-    const { data: coachData, error: coachError } =
-      await supabase
-        .from("coaches")
-        .select("*")
-        .order("id", { ascending: true });
+
+    const {
+      data: coachData,
+      error: coachError,
+    } = await supabase
+      .from("coaches")
+      .select("*")
+      .order(
+        "id",
+        {
+          ascending: true,
+        }
+      );
+
 
     if (coachError) {
-      console.error("コーチ取得エラー:", coachError);
-      setErrorMessage(coachError.message);
+      console.error(
+        "コーチ取得エラー:",
+        coachError
+      );
+
+      setErrorMessage(
+        coachError.message
+      );
+
       setLoading(false);
+
       return;
     }
 
-    // 生徒取得
-    const { data: studentData, error: studentError } =
-      await supabase
-        .from("students")
-        .select("id, name, coach");
+
+    const {
+      data: studentData,
+      error: studentError,
+    } = await supabase
+      .from("students")
+      .select(
+        "id, name, coach"
+      );
+
 
     if (studentError) {
-      console.error("生徒取得エラー:", studentError);
-      setErrorMessage(studentError.message);
+      console.error(
+        "生徒取得エラー:",
+        studentError
+      );
+
+      setErrorMessage(
+        studentError.message
+      );
+
       setLoading(false);
+
       return;
     }
 
-    setCoaches(coachData ?? []);
-    setStudents(studentData ?? []);
+
+    setCoaches(
+      coachData ?? []
+    );
+
+    setStudents(
+      studentData ?? []
+    );
+
     setLoading(false);
   }
 
-  // 担当生徒数
-  function getStudentCount(coachName) {
+
+  function getStudentCount(
+    coachName
+  ) {
     return students.filter(
-      (student) => student.coach === coachName
+      (student) =>
+        student.coach ===
+        coachName
     ).length;
   }
 
+
   if (loading) {
-    return <p>読み込み中...</p>;
+    return (
+      <p>
+        読み込み中...
+      </p>
+    );
   }
+
 
   if (errorMessage) {
     return (
       <div>
-        <h2>データ取得エラー</h2>
-        <p>{errorMessage}</p>
+
+        <h2>
+          データ取得エラー
+        </h2>
+
+        <p>
+          {errorMessage}
+        </p>
+
       </div>
     );
   }
 
+
   return (
-    <div>
+    <div className="coaches-page">
+
       <header>
+
         <div>
-          <h2>コーチ一覧</h2>
+
+          <h2>
+            コーチ一覧
+          </h2>
+
           <p>
             登録されているコーチを確認できます
           </p>
+
         </div>
 
+
         <button
+          type="button"
           className="primary-button"
-          onClick={() => navigate("/coaches/new")}
+          onClick={() =>
+            navigate(
+              "/coaches/new"
+            )
+          }
         >
           ＋ コーチを追加
         </button>
+
       </header>
 
+
       <section className="content-card">
+
         <div className="section-title">
-          <h3>コーチ</h3>
-          <span>{coaches.length}人</span>
+
+          <h3>
+            コーチ
+          </h3>
+
+          <span>
+            {coaches.length}人
+          </span>
+
         </div>
 
+
         {coaches.length === 0 ? (
-          <p>コーチが登録されていません。</p>
+
+          <p>
+            コーチが登録されていません。
+          </p>
+
         ) : (
-          <div className="table-wrapper">
-            <table>
+
+          <div className="coaches-table-wrapper">
+
+            <table className="coaches-table">
+
               <thead>
+
                 <tr>
-                  <th>コーチ名</th>
-                  <th>プレイヤーID</th>
-                  <th>メインキャラ</th>
-                  <th>ランク</th>
-                  <th>MR</th>
-                  <th>得意分野</th>
-                  <th>担当生徒</th>
+
+                  <th className="coach-name-column">
+                    コーチ名
+                  </th>
+
+                  <th className="coach-id-column">
+                    プレイヤーID
+                  </th>
+
+                  <th className="coach-character-column">
+                    メインキャラ
+                  </th>
+
+                  <th className="coach-rank-column">
+                    ランク
+                  </th>
+
+                  <th className="coach-mr-column">
+                    MR
+                  </th>
+
+                  <th className="coach-specialty-column">
+                    得意分野
+                  </th>
+
+                  <th className="coach-students-column">
+                    担当生徒
+                  </th>
+
                 </tr>
+
               </thead>
 
+
               <tbody>
-                {coaches.map((coach) => (
-                  <tr key={coach.id}>
-                    <td>
-                      <button
-                        className="student-link"
-                        onClick={() =>
-                          navigate(`/coaches/${coach.id}`)
-                        }
-                      >
-                        {coach.name}
-                      </button>
-                    </td>
 
-                    <td>
-                      {coach.sf6_player_id || "-"}
-                    </td>
+                {coaches.map(
+                  (coach) => (
 
-                    <td>
-                      {coach.main_character || "-"}
-                    </td>
+                    <tr
+                      key={
+                        coach.id
+                      }
+                    >
 
-                    <td>
-                      <span className="rank">
-                        {coach.rank || "-"}
-                      </span>
-                    </td>
+                      <td>
 
-                    <td>
-                      {coach.mr ?? "-"}
-                    </td>
+                        <button
+                          type="button"
+                          className="coach-name-link"
+                          onClick={() =>
+                            navigate(
+                              `/coaches/${coach.id}`
+                            )
+                          }
+                        >
+                          {coach.name}
+                        </button>
 
-                    <td>
-                      {coach.specialty || "-"}
-                    </td>
+                      </td>
 
-                    <td>
-                      {getStudentCount(coach.name)}人
-                    </td>
-                  </tr>
-                ))}
+
+                      <td className="coach-player-id">
+                        {coach.sf6_player_id ||
+                          "-"}
+                      </td>
+
+
+                      <td className="coach-character">
+                        {coach.main_character ||
+                          "-"}
+                      </td>
+
+
+                      <td>
+
+                        <span className="rank">
+                          {coach.rank ||
+                            "-"}
+                        </span>
+
+                      </td>
+
+
+                      <td className="coach-mr">
+                        {coach.mr ??
+                          "-"}
+                      </td>
+
+
+                      <td className="coach-specialty">
+                        {coach.specialty ||
+                          "-"}
+                      </td>
+
+
+                      <td className="coach-student-count">
+
+                        <strong>
+                          {getStudentCount(
+                            coach.name
+                          )}
+                        </strong>
+
+                        <span>
+                          人
+                        </span>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
               </tbody>
+
             </table>
+
           </div>
+
         )}
+
       </section>
+
     </div>
   );
 }
+
 
 export default Coaches;

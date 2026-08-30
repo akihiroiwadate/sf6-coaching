@@ -27,30 +27,28 @@ function formatDate(value) {
   }
 
   const date =
-    new Date(
-      `${value}T00:00:00`
-    );
+    new Date(`${value}T00:00:00`);
 
-  return date.toLocaleDateString(
+  return new Intl.DateTimeFormat(
     "ja-JP",
     {
       year: "numeric",
       month: "long",
       day: "numeric",
     }
-  );
+  ).format(date);
 }
 
 
 function formatCreatedAt(value) {
   if (!value) {
-    return "-";
+    return "";
   }
 
   const date =
     new Date(value);
 
-  return date.toLocaleString(
+  return new Intl.DateTimeFormat(
     "ja-JP",
     {
       year: "numeric",
@@ -59,7 +57,7 @@ function formatCreatedAt(value) {
       hour: "2-digit",
       minute: "2-digit",
     }
-  );
+  ).format(date);
 }
 
 
@@ -77,17 +75,17 @@ function getPreferredDateTime(item) {
       item.preferred_date
     );
 
-  const time =
-    item.preferred_time
-      ? item.preferred_time.slice(
-          0,
-          5
-        )
-      : "";
-
-  if (!time) {
+  if (
+    !item.preferred_time
+  ) {
     return date;
   }
+
+  const time =
+    item.preferred_time.slice(
+      0,
+      5
+    );
 
   return `${date} ${time}`;
 }
@@ -143,7 +141,7 @@ function CoachRequests() {
 
       const {
         data,
-        error: fetchError,
+        error,
       } =
         await supabase
           .from(
@@ -176,26 +174,25 @@ function CoachRequests() {
             }
           );
 
-      if (fetchError) {
-        throw fetchError;
+
+      if (error) {
+        throw error;
       }
+
 
       setRequests(
         data || []
       );
 
-    } catch (err) {
+    } catch (error) {
       console.error(
         "申し込み取得エラー:",
-        err
+        error
       );
 
       setError(
-        `申し込み情報の取得に失敗しました。${
-          err?.message
-            ? ` ${err.message}`
-            : ""
-        }`
+        error.message ||
+        "申し込みの取得に失敗しました。"
       );
 
     } finally {
@@ -207,38 +204,42 @@ function CoachRequests() {
   async function handleAccept(
     requestId
   ) {
-    setMessage("");
-    setError("");
-
     if (!coachId) {
       setError(
-        "ログイン中のコーチIDを取得できません。ログアウトして、もう一度コーチでログインしてください。"
+        "ログイン中のコーチ情報が取得できません。"
       );
 
       return;
     }
 
+
     const confirmed =
       window.confirm(
-        "このコーチング申し込みを受諾しますか？"
+        "この申し込みを受諾しますか？"
       );
+
 
     if (!confirmed) {
       return;
     }
+
 
     try {
       setAcceptingId(
         requestId
       );
 
+      setError("");
+      setMessage("");
+
+
       const now =
-        new Date()
-          .toISOString();
+        new Date().toISOString();
+
 
       const {
         data,
-        error: updateError,
+        error,
       } =
         await supabase
           .from(
@@ -269,16 +270,18 @@ function CoachRequests() {
           )
           .select();
 
-      if (updateError) {
-        throw updateError;
+
+      if (error) {
+        throw error;
       }
+
 
       if (
         !data ||
         data.length === 0
       ) {
         setError(
-          "この申し込みは、すでに別のコーチが受諾した可能性があります。"
+          "この申し込みは、すでに他のコーチが受諾しています。"
         );
 
         await loadRequests();
@@ -286,24 +289,23 @@ function CoachRequests() {
         return;
       }
 
+
       setMessage(
-        "申し込みを受諾しました。担当コーチングに移動しました。"
+        "申し込みを受諾しました。"
       );
+
 
       await loadRequests();
 
-    } catch (err) {
+    } catch (error) {
       console.error(
         "受諾エラー:",
-        err
+        error
       );
 
       setError(
-        `受諾に失敗しました。${
-          err?.message
-            ? ` ${err.message}`
-            : ""
-        }`
+        error.message ||
+        "申し込みの受諾に失敗しました。"
       );
 
     } finally {
@@ -314,344 +316,276 @@ function CoachRequests() {
   }
 
 
-  if (loading) {
-    return (
-      <div className="coach-requests-page">
-
-        <header>
-          <div>
-            <h2>
-              新しい申し込み
-            </h2>
-
-            <p>
-              コーチング申し込みを
-              読み込んでいます
-            </p>
-          </div>
-        </header>
-
-        <section className="content-card">
-          <p>
-            読み込み中...
-          </p>
-        </section>
-
-      </div>
-    );
-  }
-
-
   return (
     <div className="coach-requests-page">
-
-      {/* =========================
-          Header
-      ========================= */}
 
       <header>
 
         <div>
+
           <h2>
-            新しい申し込み
+            コーチング申し込み
           </h2>
 
           <p>
-            まだ担当コーチが
-            決まっていない申し込みです
+            内容を確認して、
+            対応できる申し込みを
+            受諾してください
           </p>
+
+        </div>
+
+
+        <div className="coach-request-count">
+          {requests.length}件
         </div>
 
       </header>
 
 
-      {/* =========================
-          Coach Info
-      ========================= */}
+      <section className="content-card coach-request-summary">
 
-      <section className="content-card">
+        <div>
 
-        <div className="coach-request-summary">
+          <span className="coach-request-summary-label">
+            ログイン中のコーチ
+          </span>
 
-          <div>
-            <span className="detail-label">
-              ログイン中のコーチ
-            </span>
+          <strong>
+            {coachName ||
+              "コーチ"}
+          </strong>
 
-            <strong>
-              {coachName ||
-                "コーチ"}
-            </strong>
-          </div>
+        </div>
 
 
-          <div>
-            <span className="detail-label">
-              新しい申し込み
-            </span>
+        <div>
 
-            <strong>
-              {requests.length}
-              件
-            </strong>
-          </div>
+          <span className="coach-request-summary-label">
+            新しい申し込み
+          </span>
+
+          <strong>
+            {requests.length}件
+          </strong>
 
         </div>
 
       </section>
 
 
-      {/* =========================
-          Messages
-      ========================= */}
-
       {message && (
-        <div className="success-message">
+        <p className="success-message">
           {message}
-        </div>
+        </p>
       )}
 
 
       {error && (
-        <div className="error-message">
+        <p className="error-message">
           {error}
-        </div>
+        </p>
       )}
 
 
-      {!coachId && (
-        <div className="error-message">
-          現在のログイン情報に
-          coachId がありません。
-          ログアウトして、
-          もう一度コーチで
-          ログインしてください。
-        </div>
-      )}
+      {loading ? (
+
+        <section className="content-card">
+
+          <p>
+            申し込みを
+            読み込んでいます...
+          </p>
+
+        </section>
+
+      ) : requests.length === 0 ? (
+
+        <section className="content-card coach-request-empty">
+
+          <h3>
+            新しい申し込みはありません
+          </h3>
+
+          <p>
+            新しいコーチング申し込みが届くと
+            ここに表示されます。
+          </p>
+
+        </section>
+
+      ) : (
+
+        <div className="coach-request-list">
+
+          {requests.map(
+            (item) => (
+              <article
+                key={item.id}
+                className="coach-request-card"
+              >
+
+                <div className="coach-request-card-header">
+
+                  <div className="coach-request-student">
+
+                    <div className="coach-request-avatar">
+                      {getStudentName(
+                        item
+                      )
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </div>
 
 
-      {/* =========================
-          Requests
-      ========================= */}
+                    <div>
 
-      <section className="content-card">
+                      <div className="coach-request-name-row">
 
-        <div className="section-title">
-
-          <div>
-            <h3>
-              コーチング申し込み
-            </h3>
-
-            <p>
-              内容を確認して、
-              対応できる申し込みを
-              受諾してください
-            </p>
-          </div>
-
-          <span>
-            {requests.length}
-            件
-          </span>
-
-        </div>
-
-
-        {requests.length ===
-        0 ? (
-
-          <div className="coach-request-empty">
-
-            <strong>
-              新しい申し込みはありません
-            </strong>
-
-            <p>
-              新しい申し込みが入ると
-              ここに表示されます
-            </p>
-
-          </div>
-
-        ) : (
-
-          <div className="coaching-history">
-
-            {requests.map(
-              (item) => {
-
-                const studentName =
-                  getStudentName(
-                    item
-                  );
-
-                return (
-                  <article
-                    key={
-                      item.id
-                    }
-                    className="coaching-record"
-                  >
-
-                    {/* =====================
-                        Card Header
-                    ===================== */}
-
-                    <div className="coaching-record-header">
-
-                      <div>
-
-                        <strong>
-                          {studentName}
-                        </strong>
-
+                        <h3>
+                          {getStudentName(
+                            item
+                          )}
+                        </h3>
 
                         <span className="coach-request-status">
                           新規
                         </span>
 
-
-                        <span className="coach-request-type">
-                          {
-                            COACHING_TYPE_LABELS[
-                              item.coaching_type
-                            ] ||
-                            item.coaching_type
-                          }
-                        </span>
-
                       </div>
 
 
-                      <span>
+                      <p className="coach-request-created-at">
                         申込：
-                        {
-                          formatCreatedAt(
-                            item.created_at
-                          )
-                        }
+                        {formatCreatedAt(
+                          item.created_at
+                        )}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  <span className="coach-request-type">
+                    {
+                      COACHING_TYPE_LABELS[
+                        item.coaching_type
+                      ] ||
+                      item.coaching_type
+                    }
+                  </span>
+
+                </div>
+
+
+                <div className="coach-request-info-grid">
+
+                  <div className="coach-request-info">
+
+                    <span className="coach-request-info-label">
+                      希望日時
+                    </span>
+
+                    <strong>
+                      {getPreferredDateTime(
+                        item
+                      )}
+                    </strong>
+
+                  </div>
+
+
+                  <div className="coach-request-info">
+
+                    <span className="coach-request-info-label">
+                      コーチング方法
+                    </span>
+
+                    <strong>
+                      {
+                        COACHING_TYPE_LABELS[
+                          item.coaching_type
+                        ] ||
+                        item.coaching_type
+                      }
+                    </strong>
+
+                  </div>
+
+
+                  {item.replay_id && (
+
+                    <div className="coach-request-info">
+
+                      <span className="coach-request-info-label">
+                        リプレイID
                       </span>
 
-                    </div>
-
-
-                    {/* =====================
-                        Main Info
-                    ===================== */}
-
-                    <div className="coaching-record-content">
-
-                      <div>
-                        <h4>
-                          希望日時
-                        </h4>
-
-                        <p>
-                          {
-                            getPreferredDateTime(
-                              item
-                            )
-                          }
-                        </p>
-                      </div>
-
-
-                      <div>
-                        <h4>
-                          コーチング方法
-                        </h4>
-
-                        <p>
-                          {
-                            COACHING_TYPE_LABELS[
-                              item.coaching_type
-                            ] ||
-                            item.coaching_type
-                          }
-                        </p>
-                      </div>
-
-
-                      {item.replay_id && (
-                        <div>
-                          <h4>
-                            リプレイID
-                          </h4>
-
-                          <p>
-                            {
-                              item.replay_id
-                            }
-                          </p>
-                        </div>
-                      )}
-
-
-                      <div className="coach-request-content">
-
-                        <h4>
-                          相談内容
-                        </h4>
-
-                        <p>
-                          {
-                            item.request
-                          }
-                        </p>
-
-                      </div>
+                      <strong>
+                        {item.replay_id}
+                      </strong>
 
                     </div>
 
+                  )}
 
-                    {/* =====================
-                        Actions
-                    ===================== */}
-
-                    <div className="coach-request-actions">
-
-                      <Link
-                        to={`/students/${item.student_id}`}
-                        className="cancel-button"
-                      >
-                        生徒情報を見る
-                      </Link>
+                </div>
 
 
-                      <button
-                        type="button"
-                        className="primary-button"
-                        disabled={
-                          acceptingId ===
-                            item.id ||
-                          !coachId
-                        }
-                        onClick={() =>
-                          handleAccept(
-                            item.id
-                          )
-                        }
-                      >
+                <div className="coach-request-consultation">
 
-                        {acceptingId ===
+                  <span className="coach-request-info-label">
+                    相談内容
+                  </span>
+
+                  <p>
+                    {item.request}
+                  </p>
+
+                </div>
+
+
+                <div className="coach-request-actions">
+
+                  <Link
+                    to={`/students/${item.student_id}`}
+                    className="cancel-button"
+                  >
+                    生徒情報を見る
+                  </Link>
+
+
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={() =>
+                      handleAccept(
                         item.id
-                          ? "受諾中..."
-                          : "この申し込みを受諾する"}
+                      )
+                    }
+                    disabled={
+                      acceptingId ===
+                      item.id
+                    }
+                  >
 
-                      </button>
+                    {acceptingId ===
+                    item.id
+                      ? "受諾中..."
+                      : "この申し込みを受諾する"}
 
-                    </div>
+                  </button>
 
-                  </article>
-                );
-              }
-            )}
+                </div>
 
-          </div>
-        )}
+              </article>
+            )
+          )}
 
-      </section>
+        </div>
+
+      )}
 
     </div>
   );

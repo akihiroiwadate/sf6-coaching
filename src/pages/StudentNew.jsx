@@ -9,18 +9,17 @@ import {
 
 import {
   supabase,
-} from "../supabase";
+} from "../lib/supabase";
+
+import {
+  RANK_OPTIONS,
+} from "../constants/ranks";
 
 
 function StudentNew() {
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
-
-  const [
-    form,
-    setForm,
-  ] = useState({
+  const [form, setForm] = useState({
     name: "",
     playerId: "",
     coach: "",
@@ -34,24 +33,16 @@ function StudentNew() {
     task: "",
   });
 
-
-  const [
-    coaches,
-    setCoaches,
-  ] = useState([]);
-
+  const [coaches, setCoaches] =
+    useState([]);
 
   const [
     loadingCoaches,
     setLoadingCoaches,
   ] = useState(true);
 
-
-  const [
-    saving,
-    setSaving,
-  ] = useState(false);
-
+  const [saving, setSaving] =
+    useState(false);
 
   const [
     errorMessage,
@@ -64,148 +55,124 @@ function StudentNew() {
   }, []);
 
 
-  async function fetchCoaches() {
-    try {
+  const fetchCoaches =
+    async () => {
       setLoadingCoaches(true);
 
       const {
         data,
         error,
-      } =
-        await supabase
-          .from("coaches")
-          .select("id, name")
-          .order("name", {
-            ascending: true,
-          });
-
+      } = await supabase
+        .from("coaches")
+        .select("id, name")
+        .order("name", {
+          ascending: true,
+        });
 
       if (error) {
-        throw error;
+        console.error(
+          "コーチ一覧取得エラー:",
+          error
+        );
+
+        setErrorMessage(
+          "コーチ一覧の取得に失敗しました"
+        );
+
+        setLoadingCoaches(false);
+
+        return;
       }
 
+      setCoaches(data || []);
 
-      setCoaches(
-        data || []
-      );
-
-    } catch (error) {
-      console.error(
-        "コーチ一覧取得エラー:",
-        error
-      );
-
-      setErrorMessage(
-        "コーチ一覧の取得に失敗しました。"
-      );
-
-    } finally {
       setLoadingCoaches(false);
-    }
-  }
+    };
 
 
-  function handleChange(e) {
-    const {
-      name,
-      value,
-    } = e.target;
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]:
+        e.target.value,
+    });
+  };
 
 
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  }
+  const handleSubmit =
+    async (e) => {
+      e.preventDefault();
 
+      setSaving(true);
+      setErrorMessage("");
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-
-    setSaving(true);
-    setErrorMessage("");
-
-
-    try {
       const {
         error,
-      } =
-        await supabase
-          .from("students")
-          .insert([
-            {
-              name:
-                form.name,
+      } = await supabase
+        .from("students")
+        .insert([
+          {
+            name:
+              form.name,
 
-              player_id:
-                form.playerId,
+            player_id:
+              form.playerId,
 
-              coach:
-                form.coach ||
-                null,
+            coach:
+              form.coach ||
+              null,
 
-              character:
-                form.character,
+            character:
+              form.character,
 
-              rank:
-                form.rank,
+            rank:
+              form.rank,
 
-              mr:
-                form.mr === ""
-                  ? null
-                  : Number(
-                      form.mr
-                    ),
+            mr:
+              form.mr === ""
+                ? null
+                : Number(
+                    form.mr
+                  ),
 
-              goal:
-                form.goal,
+            goal:
+              form.goal,
 
-              request:
-                form.request,
+            request:
+              form.request,
 
-              game_availability:
-                form.gameAvailability,
+            game_availability:
+              form.gameAvailability,
 
-              coaching_availability:
-                form.coachingAvailability,
+            coaching_availability:
+              form.coachingAvailability,
 
-              task:
-                form.task,
-            },
-          ]);
-
+            task:
+              form.task,
+          },
+        ]);
 
       if (error) {
-        throw error;
-      }
+        console.error(
+          "登録エラー:",
+          error
+        );
 
+        setErrorMessage(
+          error.message
+        );
+
+        setSaving(false);
+
+        return;
+      }
 
       alert(
         "生徒を登録しました"
       );
 
-
-      navigate(
-        "/students"
-      );
-
-    } catch (error) {
-      console.error(
-        "登録エラー:",
-        error
-      );
-
-
-      setErrorMessage(
-        error.message ||
-          "生徒の登録に失敗しました。"
-      );
-
-    } finally {
-      setSaving(false);
-    }
-  }
+      navigate("/students");
+    };
 
 
   return (
@@ -214,7 +181,6 @@ function StudentNew() {
       <header>
 
         <div>
-
           <h2>
             生徒登録
           </h2>
@@ -222,7 +188,6 @@ function StudentNew() {
           <p>
             新しい生徒の情報を登録します
           </p>
-
         </div>
 
       </header>
@@ -237,18 +202,13 @@ function StudentNew() {
           }
         >
 
-          {/* =====================
-              プレイヤー名
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="name">
+            <label>
               プレイヤー名
             </label>
 
             <input
-              id="name"
               type="text"
               name="name"
               value={
@@ -263,18 +223,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              プレイヤーID
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="playerId">
+            <label>
               スト6 プレイヤーID
             </label>
 
             <input
-              id="playerId"
               type="text"
               name="playerId"
               value={
@@ -289,19 +244,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              担当コーチ
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="coach">
+            <label>
               担当コーチ
             </label>
 
-
             <select
-              id="coach"
               name="coach"
               value={
                 form.coach
@@ -315,13 +264,10 @@ function StudentNew() {
             >
 
               <option value="">
-
                 {loadingCoaches
-                  ? "コーチ一覧を読み込み中..."
+                  ? "読み込み中..."
                   : "担当コーチを選択してください"}
-
               </option>
-
 
               {coaches.map(
                 (coach) => (
@@ -333,38 +279,23 @@ function StudentNew() {
                       coach.name
                     }
                   >
-                    {
-                      coach.name
-                    }
+                    {coach.name}
                   </option>
                 )
               )}
 
             </select>
 
-
-            {!loadingCoaches &&
-              coaches.length === 0 && (
-                <small>
-                  登録されているコーチがいません
-                </small>
-              )}
-
           </div>
 
 
-          {/* =====================
-              使用キャラクター
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="character">
+            <label>
               使用キャラクター
             </label>
 
             <input
-              id="character"
               type="text"
               name="character"
               value={
@@ -378,18 +309,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              ランク
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="rank">
+            <label>
               ランク
             </label>
 
             <select
-              id="rank"
               name="rank"
               value={
                 form.rank
@@ -403,55 +329,29 @@ function StudentNew() {
                 選択してください
               </option>
 
-              <option value="ROOKIE">
-                ROOKIE
-              </option>
-
-              <option value="IRON">
-                IRON
-              </option>
-
-              <option value="BRONZE">
-                BRONZE
-              </option>
-
-              <option value="SILVER">
-                SILVER
-              </option>
-
-              <option value="GOLD">
-                GOLD
-              </option>
-
-              <option value="PLATINUM">
-                PLATINUM
-              </option>
-
-              <option value="DIAMOND">
-                DIAMOND
-              </option>
-
-              <option value="MASTER">
-                MASTER
-              </option>
+              {RANK_OPTIONS.map(
+                (rank) => (
+                  <option
+                    key={rank}
+                    value={rank}
+                  >
+                    {rank}
+                  </option>
+                )
+              )}
 
             </select>
 
           </div>
 
 
-          {/* =====================
-              MR
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="mr">
+            <label>
               MR
             </label>
 
             <input
-              id="mr"
               type="number"
               name="mr"
               value={
@@ -465,18 +365,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              目標
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="goal">
+            <label>
               目標
             </label>
 
             <textarea
-              id="goal"
               name="goal"
               value={
                 form.goal
@@ -490,18 +385,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              コーチング要望
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="request">
+            <label>
               コーチング要望
             </label>
 
             <textarea
-              id="request"
               name="request"
               value={
                 form.request
@@ -515,18 +405,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              プレイ可能時間
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="gameAvailability">
+            <label>
               ゲームをプレイできる時間
             </label>
 
             <textarea
-              id="gameAvailability"
               name="gameAvailability"
               value={
                 form.gameAvailability
@@ -540,18 +425,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              コーチング可能時間
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="coachingAvailability">
+            <label>
               コーチングを受けられる時間
             </label>
 
             <textarea
-              id="coachingAvailability"
               name="coachingAvailability"
               value={
                 form.coachingAvailability
@@ -565,18 +445,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              現在の課題
-          ===================== */}
-
           <div className="form-group">
 
-            <label htmlFor="task">
+            <label>
               現在の課題
             </label>
 
             <textarea
-              id="task"
               name="task"
               value={
                 form.task
@@ -590,20 +465,13 @@ function StudentNew() {
           </div>
 
 
-          {/* =====================
-              Error
-          ===================== */}
-
           {errorMessage && (
             <p className="error-message">
+              登録に失敗しました：
               {errorMessage}
             </p>
           )}
 
-
-          {/* =====================
-              Actions
-          ===================== */}
 
           <div className="form-actions">
 
@@ -619,7 +487,6 @@ function StudentNew() {
               キャンセル
             </button>
 
-
             <button
               type="submit"
               className="primary-button"
@@ -628,11 +495,9 @@ function StudentNew() {
                 loadingCoaches
               }
             >
-
               {saving
                 ? "登録中..."
                 : "登録する"}
-
             </button>
 
           </div>

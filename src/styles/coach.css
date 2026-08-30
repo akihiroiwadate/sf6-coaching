@@ -1,821 +1,259 @@
-/* =========================
-   Student Theme
-========================= */
+/* ========================================
+   Coach Theme
+======================================== */
 
-.role-student header h2 {
-  color: #1e3a8a;
+.role-coach header h2 {
+  color: #14532d;
+}
+
+.role-coach .content-card {
+  border-color: #dcfce7;
 }
 
 
-.role-student .content-card {
-  box-shadow:
-    0 1px 3px
-    rgba(
-      37,
-      99,
-      235,
-      0.04
-    );
-}
+/* ========================================
+   Coach Requests
+======================================== */
 
-
-/* =========================
-   Coaching Apply Page
-========================= */
-
-.role-student
-.coaching-apply-page {
+.coach-requests-page {
   width: 100%;
-  max-width: 1040px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 
-.role-student
-.coaching-apply-header {
+/* ========================================
+   Header
+======================================== */
+
+.coach-requests-page header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
   margin-bottom: 24px;
 }
 
-
-.role-student
-.page-eyebrow {
-  display: block;
-
-  margin-bottom: 6px;
-
-  color: #64748b;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  letter-spacing: 0.06em;
+.coach-requests-page header h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
 }
 
-
-.role-student
-.coaching-apply-header
-h2 {
-  margin: 0 0 6px;
-
-  color: #1e3a8a;
-
-  font-size: 30px;
-}
-
-
-.role-student
-.coaching-apply-header
-p {
+.coach-requests-page header p {
   margin: 0;
-
   color: #64748b;
-
-  font-size: 14px;
+  line-height: 1.7;
 }
 
-
-/* =========================
-   Apply Form
-========================= */
-
-.role-student
-.coaching-apply-form {
-  display: flex;
-  flex-direction: column;
-
-  gap: 20px;
-}
-
-
-.role-student
-.coaching-apply-section {
-  padding: 26px;
-
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-
-  background: #fff;
-
-  box-shadow:
-    0 1px 3px
-    rgba(
-      37,
-      99,
-      235,
-      0.04
-    );
-}
-
-
-/* =========================
-   Section Heading
-========================= */
-
-.role-student
-.apply-section-heading {
-  display: flex;
-
-  align-items: flex-start;
-
-  gap: 14px;
-
-  margin-bottom: 22px;
-}
-
-
-.role-student
-.apply-section-number {
+.coach-request-count {
   flex-shrink: 0;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  width: 32px;
-  height: 32px;
-
-  border-radius: 50%;
-
-  background: #2563eb;
-
-  color: #fff;
-
-  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #15803d;
   font-weight: 700;
 }
 
 
-.role-student
-.apply-section-heading
-h3 {
-  margin: 1px 0 5px;
+/* ========================================
+   Summary
+======================================== */
 
-  color: #1e3a8a;
+.coach-request-summary {
+  display: flex;
+  gap: 48px;
+  margin-bottom: 24px;
+}
+
+.coach-request-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coach-request-summary-label {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.coach-request-summary strong {
+  color: #14532d;
+  font-size: 18px;
+}
+
+
+/* ========================================
+   Message
+======================================== */
+
+.success-message {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 600;
+}
+
+
+/* ========================================
+   Request List
+======================================== */
+
+.coach-request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+/* ========================================
+   Request Card
+======================================== */
+
+.coach-request-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px
+    rgba(15, 23, 42, 0.04);
+}
+
+
+/* ========================================
+   Card Header
+======================================== */
+
+.coach-request-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 20px 24px;
+
+  border-bottom:
+    1px solid #eef2f7;
+
+  background:
+    #f8fafc;
+}
+
+
+.coach-request-student {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+.coach-request-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background:
+    #dcfce7;
+
+  color:
+    #15803d;
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+
+.coach-request-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.coach-request-name-row h3 {
+  margin: 0;
+
+  color:
+    #0f172a;
 
   font-size: 18px;
 }
 
 
-.role-student
-.apply-section-heading
-p {
-  margin: 0;
+.coach-request-created-at {
+  margin: 5px 0 0;
 
-  color: #64748b;
+  color:
+    #64748b;
 
   font-size: 13px;
-
-  line-height: 1.6;
 }
 
 
-/* =========================
-   Coaching Type
-========================= */
+/* ========================================
+   Badges
+======================================== */
 
-.role-student
-.coaching-type-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
-
-  gap: 14px;
-}
-
-
-.role-student
-.coaching-type-card {
-  position: relative;
-
-  display: flex;
-
-  align-items: flex-start;
-
-  gap: 12px;
-
-  min-height: 115px;
-
-  padding: 18px;
-
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-
-  background: #fff;
-
-  cursor: pointer;
-
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-
-.role-student
-.coaching-type-card:hover {
-  border-color: #93c5fd;
-
-  background: #f8fbff;
-}
-
-
-.role-student
-.coaching-type-card.selected {
-  border-color: #2563eb;
-
-  background: #eff6ff;
-
-  box-shadow:
-    0 0 0 1px
-    rgba(
-      37,
-      99,
-      235,
-      0.08
-    );
-}
-
-
-.role-student
-.coaching-type-card
-> input {
-  position: absolute;
-
-  opacity: 0;
-
-  pointer-events: none;
-}
-
-
-.role-student
-.coaching-type-radio {
-  flex-shrink: 0;
-
-  display: flex;
-
+.coach-request-status {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
 
-  width: 20px;
-  height: 20px;
+  padding: 4px 9px;
 
-  margin-top: 1px;
+  border-radius:
+    999px;
 
-  border: 2px solid #cbd5e1;
-  border-radius: 50%;
+  background:
+    #dcfce7;
 
-  background: #fff;
-}
+  color:
+    #15803d;
 
-
-.role-student
-.coaching-type-card.selected
-.coaching-type-radio {
-  border-color: #2563eb;
-}
-
-
-.role-student
-.coaching-type-radio
-span {
-  width: 10px;
-  height: 10px;
-
-  border-radius: 50%;
-}
-
-
-.role-student
-.coaching-type-card.selected
-.coaching-type-radio
-span {
-  background: #2563eb;
-}
-
-
-.role-student
-.coaching-type-text {
-  min-width: 0;
-}
-
-
-.role-student
-.coaching-type-text
-strong {
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: #1e3a8a;
-
-  font-size: 15px;
-}
-
-
-.role-student
-.coaching-type-text
-p {
-  margin: 0;
-
-  color: #64748b;
-
-  font-size: 13px;
-
-  line-height: 1.6;
-}
-
-
-/* =========================
-   Form
-========================= */
-
-.role-student
-.coaching-date-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
-
-  gap: 18px;
-}
-
-
-.role-student
-.form-group {
-  display: flex;
-  flex-direction: column;
-
-  gap: 8px;
-}
-
-
-.role-student
-.form-group
-label {
-  color: #334155;
-
-  font-size: 14px;
-  font-weight: 600;
-}
-
-
-.role-student
-.form-group
-input,
-
-.role-student
-.form-group
-select,
-
-.role-student
-.form-group
-textarea {
-  width: 100%;
-
-  padding: 12px 14px;
-
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-
-  background: #fff;
-
-  color: #1e293b;
-
-  outline: none;
-}
-
-
-.role-student
-.form-group
-input:focus,
-
-.role-student
-.form-group
-select:focus,
-
-.role-student
-.form-group
-textarea:focus {
-  border-color: #2563eb;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(
-      37,
-      99,
-      235,
-      0.08
-    );
-}
-
-
-.role-student
-.coaching-request-textarea {
-  min-height: 150px;
-
-  resize: vertical;
-
-  line-height: 1.7;
-}
-
-
-.role-student
-.required-label {
-  display: inline-block;
-
-  margin-left: 8px;
-
-  padding: 2px 6px;
-
-  border-radius: 4px;
-
-  background: #fee2e2;
-
-  color: #b91c1c;
-
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 
-.role-student
-.input-counter {
-  color: #94a3b8;
-
-  font-size: 12px;
-
-  text-align: right;
-}
-
-
-.role-student
-.apply-note {
-  margin: 15px 0 0;
-
-  padding: 10px 12px;
-
-  border-radius: 7px;
-
-  background: #eff6ff;
-
-  color: #475569;
-
-  font-size: 12px;
-}
-
-
-/* =========================
-   Replay
-========================= */
-
-.role-student
-.replay-area {
-  display: flex;
-  flex-direction: column;
-
-  gap: 22px;
-}
-
-
-.role-student
-.replay-image-area {
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(250px, 320px);
-
-  gap: 20px;
-
-  align-items: stretch;
-}
-
-
-.role-student
-.replay-upload-box {
-  display: flex;
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  min-height: 200px;
-
-  padding: 24px;
-
-  border: 2px dashed #bfdbfe;
-  border-radius: 12px;
-
-  background: #f8fbff;
-
-  text-align: center;
-}
-
-
-.role-student
-.replay-upload-box
-strong {
-  margin-bottom: 7px;
-
-  color: #1e3a8a;
-
-  font-size: 14px;
-}
-
-
-.role-student
-.replay-upload-box
-p {
-  max-width: 320px;
-
-  margin: 0 0 16px;
-
-  color: #64748b;
-
-  font-size: 12px;
-
-  line-height: 1.6;
-}
-
-
-.role-student
-.replay-upload-box
-small {
-  margin-top: 10px;
-
-  color: #64748b;
-
-  overflow-wrap: anywhere;
-}
-
-
-.role-student
-.replay-file-button {
+.coach-request-type {
   display: inline-flex;
-
   align-items: center;
-  justify-content: center;
 
-  min-height: 40px;
+  padding: 7px 12px;
 
-  padding: 9px 18px;
+  flex-shrink: 0;
 
-  border: 1px solid #93c5fd;
-  border-radius: 8px;
+  border:
+    1px solid #bbf7d0;
 
-  background: #fff;
+  border-radius:
+    999px;
 
-  color: #1d4ed8;
+  background:
+    #f0fdf4;
+
+  color:
+    #166534;
 
   font-size: 13px;
-  font-weight: 600;
-
-  cursor: pointer;
+  font-weight: 700;
 }
 
 
-.role-student
-.replay-file-button:hover {
-  background: #eff6ff;
-}
-
-
-.role-student
-.replay-file-button
-input {
-  display: none;
-}
-
-
-.role-student
-.replay-preview,
-
-.role-student
-.replay-preview-empty {
-  min-height: 200px;
-
-  overflow: hidden;
-
-  border: 1px solid #dbeafe;
-  border-radius: 12px;
-
-  background: #f8fafc;
-}
-
-
-.role-student
-.replay-preview {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-}
-
-
-.role-student
-.replay-preview
-img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  max-height: 300px;
-
-  object-fit: contain;
-}
-
-
-.role-student
-.replay-preview-empty {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  color: #94a3b8;
-
-  font-size: 12px;
-
-  text-align: center;
-}
-
-
-/* =========================
-   Actions
-========================= */
-
-.role-student
-.coaching-apply-actions {
-  display: flex;
-
-  align-items: center;
-  justify-content: flex-end;
-
-  gap: 12px;
-
-  padding:
-    4px
-    0
-    20px;
-}
-
-
-.role-student
-.coaching-apply-actions
-.primary-button {
-  min-width: 180px;
-}
-
-
-/* =========================
-   Growth Summary
-========================= */
-
-.role-student
-.growth-summary {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
-
-  gap: 16px;
-}
-
-
-.role-student
-.growth-card {
-  padding: 20px;
-
-  border: 1px solid #dbeafe;
-  border-radius: 10px;
-
-  background: #f8fbff;
-}
-
-
-.role-student
-.growth-card
-span {
-  display: block;
-
-  margin-bottom: 8px;
-
-  color: #64748b;
-
-  font-size: 13px;
-}
-
-
-.role-student
-.growth-card
-strong {
-  color: #1d4ed8;
-
-  font-size: 25px;
-}
-
-
-.role-student
-.growth-card
-small {
-  margin-left: 5px;
-
-  color: #64748b;
-}
-
-
-.role-student
-.growth-card
-p {
-  display: inline;
-
-  margin-left: 6px;
-
-  color: #64748b;
-
-  font-size: 12px;
-}
-
-
-/* =========================
-   Coaching History
-========================= */
-
-.role-student
-.coaching-history {
-  display: flex;
-  flex-direction: column;
-
-  gap: 16px;
-}
-
-
-.role-student
-.coaching-record {
-  overflow: hidden;
-
-  border: 1px solid #dbeafe;
-  border-radius: 10px;
-
-  background: white;
-}
-
-
-.role-student
-.coaching-record-header {
-  padding: 14px 18px;
-
-  background: #eff6ff;
-
-  border-bottom: 1px solid #dbeafe;
-}
-
-
-.role-student
-.coaching-record-header
-> div {
-  display: flex;
-
-  align-items: center;
-  flex-wrap: wrap;
-
-  gap: 12px;
-}
-
-
-.role-student
-.coaching-record-header
-strong {
-  color: #1e3a8a;
-
-  font-size: 14px;
-}
-
-
-.role-student
-.coaching-record-header
-span {
-  color: #64748b;
-
-  font-size: 13px;
-}
-
-
-.role-student
-.coaching-record-content {
+/* ========================================
+   Info
+======================================== */
+
+.coach-request-info-grid {
   display: grid;
 
   grid-template-columns:
@@ -824,142 +262,512 @@ span {
       minmax(0, 1fr)
     );
 
-  gap: 22px;
+  gap: 16px;
 
-  padding: 20px;
+  padding:
+    24px;
 }
 
 
-.role-student
-.coaching-record-content
-h4 {
-  margin: 0 0 7px;
+.coach-request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 
-  color: #1e40af;
+  min-height: 72px;
 
-  font-size: 13px;
+  padding:
+    15px 16px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    10px;
+
+  background:
+    #ffffff;
 }
 
 
-.role-student
-.coaching-record-content
-p {
-  margin: 0;
+.coach-request-info-label {
+  color:
+    #64748b;
 
-  color: #475569;
+  font-size:
+    12px;
 
-  font-size: 14px;
+  font-weight:
+    700;
 
-  line-height: 1.7;
+  letter-spacing:
+    0.04em;
 }
 
 
-/* =========================
-   Rank
-========================= */
+.coach-request-info strong {
+  color:
+    #0f172a;
 
-.role-student
-.rank {
-  display: inline-block;
+  font-size:
+    16px;
 
-  padding: 4px 9px;
-
-  border-radius: 6px;
-
-  background: #eff6ff;
-
-  color: #1d4ed8;
-
-  font-size: 12px;
-  font-weight: 600;
+  line-height:
+    1.5;
 }
 
 
-/* =========================
+/* ========================================
+   Consultation
+======================================== */
+
+.coach-request-consultation {
+  margin:
+    0 24px 24px;
+
+  padding:
+    18px;
+
+  border-radius:
+    12px;
+
+  background:
+    #f8fafc;
+}
+
+
+.coach-request-consultation p {
+  margin:
+    10px 0 0;
+
+  color:
+    #1e293b;
+
+  font-size:
+    15px;
+
+  line-height:
+    1.8;
+
+  white-space:
+    pre-wrap;
+}
+
+
+/* ========================================
+   Actions
+======================================== */
+
+.coach-request-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap:
+    12px;
+
+  padding:
+    18px 24px;
+
+  border-top:
+    1px solid #eef2f7;
+
+  background:
+    #ffffff;
+}
+
+
+.coach-request-actions .cancel-button,
+.coach-request-actions .primary-button {
+  min-width:
+    150px;
+
+  min-height:
+    44px;
+}
+
+
+.coach-request-actions .primary-button {
+  min-width:
+    220px;
+}
+
+
+/* ========================================
+   Empty
+======================================== */
+
+.coach-request-empty {
+  padding:
+    60px 24px;
+
+  text-align:
+    center;
+}
+
+
+.coach-request-empty h3 {
+  margin:
+    0 0 8px;
+
+  color:
+    #334155;
+}
+
+
+.coach-request-empty p {
+  margin:
+    0;
+
+  color:
+    #94a3b8;
+}
+
+
+/* ========================================
+   Existing Coaching History
+======================================== */
+
+.role-coach .coaching-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.role-coach .coaching-record {
+  border:
+    1px solid #dcfce7;
+
+  border-radius:
+    12px;
+
+  background:
+    #ffffff;
+}
+
+
+.role-coach .coaching-record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap:
+    16px;
+
+  padding:
+    16px 18px;
+
+  border-bottom:
+    1px solid #dcfce7;
+
+  background:
+    #f0fdf4;
+}
+
+
+.role-coach .coaching-record-content {
+  padding:
+    18px;
+}
+
+
+/* ========================================
+   Coach Stat
+======================================== */
+
+.role-coach .stat-card {
+  position:
+    relative;
+
+  overflow:
+    hidden;
+}
+
+
+.role-coach .stat-card::before {
+  position:
+    absolute;
+
+  top:
+    0;
+
+  left:
+    0;
+
+  width:
+    100%;
+
+  height:
+    4px;
+
+  background:
+    #16a34a;
+
+  content:
+    "";
+}
+
+
+/* ========================================
+   Coach Form
+======================================== */
+
+.role-coach .form-group input:focus,
+.role-coach .form-group textarea:focus,
+.role-coach .form-group select:focus {
+  border-color:
+    #22c55e;
+
+  outline:
+    none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      34,
+      197,
+      94,
+      0.12
+    );
+}
+
+
+/* ========================================
+   Other Coach UI
+======================================== */
+
+.coach-alert {
+  padding:
+    14px 16px;
+
+  border:
+    1px solid #bbf7d0;
+
+  border-radius:
+    10px;
+
+  background:
+    #f0fdf4;
+
+  color:
+    #166534;
+}
+
+
+.coach-bio {
+  color:
+    #475569;
+
+  line-height:
+    1.8;
+
+  white-space:
+    pre-wrap;
+}
+
+
+/* ========================================
    Responsive
-========================= */
+======================================== */
 
 @media (
-  max-width: 900px
+  max-width: 768px
 ) {
 
-  .role-student
-  .coaching-type-grid {
-    grid-template-columns: 1fr;
+  .coach-requests-page header {
+    flex-direction:
+      column;
+
+    gap:
+      12px;
   }
 
 
-  .role-student
-  .replay-image-area {
-    grid-template-columns: 1fr;
+  .coach-request-summary {
+    flex-direction:
+      column;
+
+    gap:
+      16px;
   }
 
 
-  .role-student
-  .growth-summary {
-    grid-template-columns: 1fr;
+  .coach-request-card-header {
+    align-items:
+      flex-start;
+
+    padding:
+      18px;
   }
 
 
-  .role-student
-  .coaching-record-content {
-    grid-template-columns: 1fr;
+  .coach-request-student {
+    align-items:
+      flex-start;
+  }
+
+
+  .coach-request-name-row {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      6px;
+  }
+
+
+  .coach-request-type {
+    align-self:
+      flex-start;
+  }
+
+
+  .coach-request-info-grid {
+    grid-template-columns:
+      1fr;
+
+    padding:
+      18px;
+
+    gap:
+      12px;
+  }
+
+
+  .coach-request-consultation {
+    margin:
+      0 18px 18px;
+  }
+
+
+  .coach-request-actions {
+    flex-direction:
+      column;
+
+    padding:
+      18px;
+  }
+
+
+  .coach-request-actions
+  .cancel-button,
+  .coach-request-actions
+  .primary-button {
+    width:
+      100%;
+
+    min-width:
+      0;
   }
 
 }
 
+/* ========================================
+   Student Detail Header
+======================================== */
 
-@media (
-  max-width: 700px
-) {
+.student-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
 
-  .role-student
-  .coaching-apply-page {
-    max-width: 100%;
+.student-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+/* 戻る・削除ボタンのサイズを統一 */
+
+.student-detail-header-actions
+.cancel-button,
+.student-detail-header-actions
+.delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 150px;
+  height: 46px;
+
+  padding: 0 20px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+/* 削除ボタン */
+
+.student-detail-header-actions
+.delete-button {
+  border: 1px solid #fecaca;
+
+  background: #ffffff;
+
+  color: #dc2626;
+}
+
+.student-detail-header-actions
+.delete-button:hover {
+  border-color: #dc2626;
+
+  background: #fef2f2;
+}
+
+
+/* 戻るボタン */
+
+.student-detail-header-actions
+.cancel-button {
+  border: 1px solid #cbd5e1;
+
+  background: #ffffff;
+
+  color: #334155;
+}
+
+.student-detail-header-actions
+.cancel-button:hover {
+  background: #f8fafc;
+}
+
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 768px) {
+
+  .student-detail-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-
-  .role-student
-  .coaching-apply-header
-  h2 {
-    font-size: 25px;
-  }
-
-
-  .role-student
-  .coaching-apply-section {
-    padding: 18px;
-  }
-
-
-  .role-student
-  .coaching-date-grid {
-    grid-template-columns: 1fr;
-  }
-
-
-  .role-student
-  .coaching-type-card {
-    min-height: auto;
-  }
-
-
-  .role-student
-  .coaching-apply-actions {
-    flex-direction: column-reverse;
-
-    align-items: stretch;
-  }
-
-
-  .role-student
-  .coaching-apply-actions
-  .primary-button,
-
-  .role-student
-  .coaching-apply-actions
-  .cancel-button {
+  .student-detail-header-actions {
     width: 100%;
+  }
+
+  .student-detail-header-actions
+  .cancel-button,
+  .student-detail-header-actions
+  .delete-button {
+    flex: 1;
+    min-width: 0;
   }
 
 }

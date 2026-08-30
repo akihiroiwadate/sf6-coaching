@@ -6,6 +6,46 @@ import {
   supabase,
 } from "../../supabase";
 
+import {
+  RANK_OPTIONS,
+} from "../../constants/ranks";
+
+
+function createFormData(
+  student
+) {
+  return {
+    name:
+      student?.name || "",
+
+    player_id:
+      student?.player_id || "",
+
+    character:
+      student?.character || "",
+
+    rank:
+      student?.rank || "",
+
+    mr:
+      student?.mr ?? "",
+
+    goal:
+      student?.goal || "",
+
+    request:
+      student?.request || "",
+
+    game_availability:
+      student?.game_availability ||
+      "",
+
+    coaching_availability:
+      student?.coaching_availability ||
+      "",
+  };
+}
+
 
 function StudentProfileSection({
   student,
@@ -14,8 +54,8 @@ function StudentProfileSection({
   onError,
 }) {
   const [
-    isEditing,
-    setIsEditing,
+    editing,
+    setEditing,
   ] = useState(false);
 
   const [
@@ -23,73 +63,32 @@ function StudentProfileSection({
     setSaving,
   ] = useState(false);
 
-
   const [
     formData,
     setFormData,
-  ] = useState({
-    name:
-      student.name ?? "",
-
-    player_id:
-      student.player_id ?? "",
-
-    character:
-      student.character ?? "",
-
-    rank:
-      student.rank ?? "",
-
-    mr:
-      student.mr ?? "",
-
-    goal:
-      student.goal ?? "",
-
-    request:
-      student.request ?? "",
-
-    game_availability:
-      student.game_availability ??
-      "",
-
-    coaching_availability:
-      student.coaching_availability ??
-      "",
-  });
+  ] = useState(
+    createFormData(student)
+  );
 
 
   function resetForm() {
-    setFormData({
-      name:
-        student.name ?? "",
+    setFormData(
+      createFormData(student)
+    );
+  }
 
-      player_id:
-        student.player_id ?? "",
 
-      character:
-        student.character ?? "",
+  function handleStartEdit() {
+    resetForm();
 
-      rank:
-        student.rank ?? "",
+    setEditing(true);
+  }
 
-      mr:
-        student.mr ?? "",
 
-      goal:
-        student.goal ?? "",
+  function handleCancel() {
+    resetForm();
 
-      request:
-        student.request ?? "",
-
-      game_availability:
-        student.game_availability ??
-        "",
-
-      coaching_availability:
-        student.coaching_availability ??
-        "",
-    });
+    setEditing(false);
   }
 
 
@@ -99,160 +98,112 @@ function StudentProfileSection({
     const {
       name,
       value,
-    } =
-      event.target;
-
+    } = event.target;
 
     setFormData(
       (current) => ({
         ...current,
-        [name]:
-          value,
+        [name]: value,
       })
     );
   }
 
 
-  function handleStartEdit() {
-    resetForm();
-
-    setIsEditing(
-      true
-    );
-  }
-
-
-  function handleCancel() {
-    resetForm();
-
-    setIsEditing(
-      false
-    );
-  }
-
-
-  async function handleSubmit(
+  async function handleSave(
     event
   ) {
     event.preventDefault();
 
-
     if (
       !formData.name.trim()
     ) {
-      onError(
+      onError?.(
         "プレイヤー名を入力してください。"
       );
 
       return;
     }
 
-
-    let mrValue =
-      null;
-
-
-    if (
-      formData.mr !== ""
-    ) {
-      mrValue =
-        Number(
-          formData.mr
-        );
-
-
-      if (
-        Number.isNaN(
-          mrValue
-        )
-      ) {
-        onError(
-          "MRは数字で入力してください。"
-        );
-
-        return;
-      }
-    }
-
-
     try {
-      setSaving(
-        true
-      );
-
+      setSaving(true);
 
       const {
         data,
         error,
-      } =
-        await supabase
-          .from("students")
-          .update({
-            name:
-              formData.name.trim(),
+      } = await supabase
+        .from("students")
+        .update({
+          name:
+            formData.name.trim(),
 
-            player_id:
-              formData.player_id.trim() ||
-              null,
+          player_id:
+            formData
+              .player_id
+              .trim() ||
+            null,
 
-            character:
-              formData.character.trim() ||
-              null,
+          character:
+            formData
+              .character
+              .trim() ||
+            null,
 
-            rank:
-              formData.rank.trim() ||
-              null,
+          rank:
+            formData.rank ||
+            null,
 
-            mr:
-              mrValue,
+          mr:
+            formData.mr === ""
+              ? null
+              : Number(
+                  formData.mr
+                ),
 
-            goal:
-              formData.goal.trim() ||
-              null,
+          goal:
+            formData
+              .goal
+              .trim() ||
+            null,
 
-            request:
-              formData.request.trim() ||
-              null,
+          request:
+            formData
+              .request
+              .trim() ||
+            null,
 
-            game_availability:
-              formData.game_availability.trim() ||
-              null,
+          game_availability:
+            formData
+              .game_availability
+              .trim() ||
+            null,
 
-            coaching_availability:
-              formData.coaching_availability.trim() ||
-              null,
-          })
-          .eq(
-            "id",
-            student.id
-          )
-          .select()
-          .single();
-
+          coaching_availability:
+            formData
+              .coaching_availability
+              .trim() ||
+            null,
+        })
+        .eq(
+          "id",
+          student.id
+        )
+        .select()
+        .single();
 
       if (error) {
         throw error;
       }
 
-
-      onUpdated(
-        data
-      );
-
+      onUpdated?.(data);
 
       const loginStudentId =
         localStorage.getItem(
           "studentId"
         );
 
-
       if (
-        String(
-          student.id
-        ) ===
-        String(
-          loginStudentId
-        )
+        String(data.id) ===
+        String(loginStudentId)
       ) {
         localStorage.setItem(
           "studentName",
@@ -260,13 +211,9 @@ function StudentProfileSection({
         );
       }
 
+      setEditing(false);
 
-      setIsEditing(
-        false
-      );
-
-
-      onSuccess(
+      onSuccess?.(
         "パーソナル情報を保存しました。"
       );
 
@@ -276,15 +223,13 @@ function StudentProfileSection({
         error
       );
 
-
-      onError(
-        `保存に失敗しました：${error.message}`
+      onError?.(
+        error.message ||
+          "パーソナル情報の保存に失敗しました。"
       );
 
     } finally {
-      setSaving(
-        false
-      );
+      setSaving(false);
     }
   }
 
@@ -295,6 +240,7 @@ function StudentProfileSection({
       <div className="section-title">
 
         <div>
+
           <h3>
             パーソナル情報
           </h3>
@@ -303,13 +249,14 @@ function StudentProfileSection({
             スト6のプレイヤー情報や
             コーチング希望を管理します
           </p>
+
         </div>
 
 
-        {!isEditing && (
+        {!editing && (
           <button
             type="button"
-            className="cancel-button"
+            className="primary-button"
             onClick={
               handleStartEdit
             }
@@ -321,169 +268,33 @@ function StudentProfileSection({
       </div>
 
 
-      {!isEditing ? (
-        <>
-
-          <div className="student-detail-grid">
-
-            <div>
-              <span className="detail-label">
-                プレイヤー名
-              </span>
-
-              <strong>
-                {student.name ||
-                  "-"}
-              </strong>
-            </div>
-
-
-            <div>
-              <span className="detail-label">
-                スト6 プレイヤーID
-              </span>
-
-              <strong>
-                {student.player_id ||
-                  "-"}
-              </strong>
-            </div>
-
-
-            <div>
-              <span className="detail-label">
-                使用キャラクター
-              </span>
-
-              <strong>
-                {student.character ||
-                  "-"}
-              </strong>
-            </div>
-
-
-            <div>
-              <span className="detail-label">
-                ランク
-              </span>
-
-              <strong>
-                {student.rank ||
-                  "-"}
-              </strong>
-            </div>
-
-
-            <div>
-              <span className="detail-label">
-                MR
-              </span>
-
-              <strong>
-                {student.mr ??
-                  "-"}
-              </strong>
-            </div>
-
-
-            <div>
-              <span className="detail-label">
-                担当コーチ
-              </span>
-
-              <strong>
-                {student.coach ||
-                  "-"}
-              </strong>
-            </div>
-
-          </div>
-
-
-          <div
-            style={{
-              marginTop:
-                "28px",
-            }}
-          >
-
-            <div className="form-group">
-              <span className="detail-label">
-                目標
-              </span>
-
-              <p>
-                {student.goal ||
-                  "未設定"}
-              </p>
-            </div>
-
-
-            <div className="form-group">
-              <span className="detail-label">
-                コーチング要望
-              </span>
-
-              <p>
-                {student.request ||
-                  "未設定"}
-              </p>
-            </div>
-
-
-            <div className="form-group">
-              <span className="detail-label">
-                ゲームをプレイできる時間
-              </span>
-
-              <p>
-                {student.game_availability ||
-                  "未設定"}
-              </p>
-            </div>
-
-
-            <div className="form-group">
-              <span className="detail-label">
-                コーチングを受けられる時間
-              </span>
-
-              <p>
-                {student.coaching_availability ||
-                  "未設定"}
-              </p>
-            </div>
-
-          </div>
-
-        </>
-      ) : (
+      {editing ? (
 
         <form
           className="student-form"
           onSubmit={
-            handleSubmit
+            handleSave
           }
         >
 
-          <div className="student-detail-grid">
+          <div className="form-grid">
 
             <div className="form-group">
 
-              <label htmlFor="name">
+              <label>
                 プレイヤー名
               </label>
 
               <input
-                id="name"
-                name="name"
                 type="text"
+                name="name"
                 value={
                   formData.name
                 }
                 onChange={
                   handleChange
                 }
+                required
               />
 
             </div>
@@ -491,14 +302,13 @@ function StudentProfileSection({
 
             <div className="form-group">
 
-              <label htmlFor="player_id">
+              <label>
                 スト6 プレイヤーID
               </label>
 
               <input
-                id="player_id"
-                name="player_id"
                 type="text"
+                name="player_id"
                 value={
                   formData.player_id
                 }
@@ -512,14 +322,13 @@ function StudentProfileSection({
 
             <div className="form-group">
 
-              <label htmlFor="character">
+              <label>
                 使用キャラクター
               </label>
 
               <input
-                id="character"
-                name="character"
                 type="text"
+                name="character"
                 value={
                   formData.character
                 }
@@ -533,42 +342,56 @@ function StudentProfileSection({
 
             <div className="form-group">
 
-              <label htmlFor="rank">
+              <label>
                 ランク
               </label>
 
-              <input
-                id="rank"
+              <select
                 name="rank"
-                type="text"
                 value={
                   formData.rank
                 }
                 onChange={
                   handleChange
                 }
-              />
+              >
+
+                <option value="">
+                  選択してください
+                </option>
+
+                {RANK_OPTIONS.map(
+                  (rank) => (
+                    <option
+                      key={rank}
+                      value={rank}
+                    >
+                      {rank}
+                    </option>
+                  )
+                )}
+
+              </select>
 
             </div>
 
 
             <div className="form-group">
 
-              <label htmlFor="mr">
+              <label>
                 MR
               </label>
 
               <input
-                id="mr"
-                name="mr"
                 type="number"
-                min="0"
+                name="mr"
                 value={
                   formData.mr
                 }
                 onChange={
                   handleChange
                 }
+                min="0"
               />
 
             </div>
@@ -578,20 +401,19 @@ function StudentProfileSection({
 
           <div className="form-group">
 
-            <label htmlFor="goal">
+            <label>
               目標
             </label>
 
             <textarea
-              id="goal"
               name="goal"
-              rows="3"
               value={
                 formData.goal
               }
               onChange={
                 handleChange
               }
+              rows="3"
             />
 
           </div>
@@ -599,20 +421,19 @@ function StudentProfileSection({
 
           <div className="form-group">
 
-            <label htmlFor="request">
+            <label>
               コーチング要望
             </label>
 
             <textarea
-              id="request"
               name="request"
-              rows="4"
               value={
                 formData.request
               }
               onChange={
                 handleChange
               }
+              rows="4"
             />
 
           </div>
@@ -620,20 +441,20 @@ function StudentProfileSection({
 
           <div className="form-group">
 
-            <label htmlFor="game_availability">
+            <label>
               ゲームをプレイできる時間
             </label>
 
             <textarea
-              id="game_availability"
               name="game_availability"
-              rows="3"
               value={
-                formData.game_availability
+                formData
+                  .game_availability
               }
               onChange={
                 handleChange
               }
+              rows="3"
             />
 
           </div>
@@ -641,20 +462,20 @@ function StudentProfileSection({
 
           <div className="form-group">
 
-            <label htmlFor="coaching_availability">
+            <label>
               コーチングを受けられる時間
             </label>
 
             <textarea
-              id="coaching_availability"
               name="coaching_availability"
-              rows="3"
               value={
-                formData.coaching_availability
+                formData
+                  .coaching_availability
               }
               onChange={
                 handleChange
               }
+              rows="3"
             />
 
           </div>
@@ -675,7 +496,6 @@ function StudentProfileSection({
               キャンセル
             </button>
 
-
             <button
               type="submit"
               className="primary-button"
@@ -691,6 +511,130 @@ function StudentProfileSection({
           </div>
 
         </form>
+
+      ) : (
+
+        <div className="student-detail-grid">
+
+          <div>
+            <span className="detail-label">
+              プレイヤー名
+            </span>
+
+            <strong>
+              {student.name || "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              スト6 プレイヤーID
+            </span>
+
+            <strong>
+              {student.player_id ||
+                "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              担当コーチ
+            </span>
+
+            <strong>
+              {student.coach ||
+                "未設定"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              使用キャラクター
+            </span>
+
+            <strong>
+              {student.character ||
+                "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              ランク
+            </span>
+
+            <strong>
+              {student.rank || "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              MR
+            </span>
+
+            <strong>
+              {student.mr ?? "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              目標
+            </span>
+
+            <strong>
+              {student.goal || "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              コーチング要望
+            </span>
+
+            <strong>
+              {student.request ||
+                "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              ゲームをプレイできる時間
+            </span>
+
+            <strong>
+              {student
+                .game_availability ||
+                "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span className="detail-label">
+              コーチングを受けられる時間
+            </span>
+
+            <strong>
+              {student
+                .coaching_availability ||
+                "-"}
+            </strong>
+          </div>
+
+        </div>
+
       )}
 
     </section>

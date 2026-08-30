@@ -1,0 +1,273 @@
+/* =========================
+   Admin List Pages
+========================= */
+
+.coaches-page,
+.students-page {
+  width: 100%;
+}
+
+
+/* =========================
+   Table Wrapper
+========================= */
+
+.coaches-table-wrapper,
+.students-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* =========================
+   List Table
+========================= */
+
+.coaches-table,
+.students-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+.coaches-table {
+  min-width: 900px;
+}
+
+.students-table {
+  min-width: 950px;
+}
+
+.coaches-table th,
+.coaches-table td,
+.students-table th,
+.students-table td {
+  padding: 18px 14px;
+
+  vertical-align: middle;
+
+  text-align: left;
+}
+
+.coaches-table th,
+.students-table th {
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.coaches-table tbody tr,
+.students-table tbody tr {
+  border-top:
+    1px solid #e5e7eb;
+}
+
+.coaches-table tbody tr:hover,
+.students-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+
+/* =========================
+   Students Columns
+========================= */
+
+.student-name-column {
+  width: 120px;
+}
+
+.student-id-column {
+  width: 145px;
+}
+
+.student-coach-column {
+  width: 120px;
+}
+
+.student-character-column {
+  width: 110px;
+}
+
+.student-rank-column {
+  width: 140px;
+}
+
+.student-mr-column {
+  width: 80px;
+}
+
+.student-task-column {
+  width: 235px;
+}
+
+
+/* =========================
+   Students Data
+========================= */
+
+.student-player-id,
+.student-coach,
+.student-character,
+.student-rank,
+.student-mr {
+  white-space: nowrap;
+}
+
+.student-player-id,
+.student-mr {
+  font-variant-numeric:
+    tabular-nums;
+}
+
+.student-task {
+  line-height: 1.6;
+
+  overflow-wrap: break-word;
+
+  word-break: normal;
+}
+
+
+/* =========================
+   Student Name Link
+========================= */
+
+.student-name-link {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #2563eb;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.student-name-link:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================
+   Coach Columns
+========================= */
+
+.coach-name-column {
+  width: 120px;
+}
+
+.coach-id-column {
+  width: 140px;
+}
+
+.coach-character-column {
+  width: 120px;
+}
+
+.coach-rank-column {
+  width: 110px;
+}
+
+.coach-mr-column {
+  width: 80px;
+}
+
+.coach-specialty-column {
+  width: 230px;
+}
+
+.coach-students-column {
+  width: 90px;
+}
+
+
+/* =========================
+   Coach Data
+========================= */
+
+.coach-player-id,
+.coach-character,
+.coach-mr {
+  white-space: nowrap;
+}
+
+.coach-player-id,
+.coach-mr {
+  font-variant-numeric:
+    tabular-nums;
+}
+
+.coach-specialty {
+  line-height: 1.6;
+
+  overflow-wrap: break-word;
+
+  word-break: normal;
+}
+
+.coach-student-count {
+  white-space: nowrap;
+
+  text-align: center !important;
+}
+
+.coach-student-count strong {
+  margin-right: 3px;
+
+  font-size: 16px;
+}
+
+
+/* =========================
+   Coach Name Link
+========================= */
+
+.coach-name-link {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #2563eb;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.coach-name-link:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+  .coaches-table {
+    min-width: 850px;
+  }
+
+  .students-table {
+    min-width: 900px;
+  }
+}
