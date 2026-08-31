@@ -11,6 +11,9 @@ import {
   supabase,
 } from "../lib/supabase";
 
+import Avatar
+  from "../components/common/Avatar";
+
 import "../styles/admin.css";
 
 
@@ -217,17 +220,33 @@ function Students() {
 
                       <td>
 
-                        <button
-                          type="button"
-                          className="student-name-link"
-                          onClick={() =>
-                            navigate(
-                              `/students/${student.id}`
-                            )
-                          }
-                        >
-                          {student.name}
-                        </button>
+                        <div className="user-name-cell">
+
+                          <Avatar
+                            name={
+                              student.name
+                            }
+                            avatarPath={
+                              student.avatar_path
+                            }
+                            type="student"
+                            size="medium"
+                          />
+
+
+                          <button
+                            type="button"
+                            className="student-name-link"
+                            onClick={() =>
+                              navigate(
+                                `/students/${student.id}`
+                              )
+                            }
+                          >
+                            {student.name}
+                          </button>
+
+                        </div>
 
                       </td>
 

@@ -12,13 +12,20 @@ import {
   supabase,
 } from "../lib/supabase";
 
-import "../styles/coach.css";
+import Avatar
+  from "../components/common/Avatar";
+
+import "../styles/avatar.css";
 
 
 function StudentDetail() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const { id } = useParams();
+
+  const {
+    id,
+  } = useParams();
 
 
   const [
@@ -26,15 +33,18 @@ function StudentDetail() {
     setStudent,
   ] = useState(null);
 
+
   const [
     coachingRecords,
     setCoachingRecords,
   ] = useState([]);
 
+
   const [
     loading,
     setLoading,
   ] = useState(true);
+
 
   const [
     errorMessage,
@@ -44,22 +54,29 @@ function StudentDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [
+    id,
+  ]);
 
 
   async function fetchData() {
     setLoading(true);
+
     setErrorMessage("");
 
 
     const {
       data: studentData,
       error: studentError,
-    } = await supabase
-      .from("students")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+    } =
+      await supabase
+        .from("students")
+        .select("*")
+        .eq(
+          "id",
+          id
+        )
+        .maybeSingle();
 
 
     if (studentError) {
@@ -68,9 +85,11 @@ function StudentDetail() {
         studentError
       );
 
+
       setErrorMessage(
         studentError.message
       );
+
 
       setLoading(false);
 
@@ -95,21 +114,23 @@ function StudentDetail() {
     const {
       data: recordData,
       error: recordError,
-    } = await supabase
-      .from(
-        "coaching_records"
-      )
-      .select("*")
-      .eq(
-        "student_id",
-        id
-      )
-      .order(
-        "date",
-        {
-          ascending: false,
-        }
-      );
+    } =
+      await supabase
+        .from(
+          "coaching_records"
+        )
+        .select("*")
+        .eq(
+          "student_id",
+          id
+        )
+        .order(
+          "date",
+          {
+            ascending:
+              false,
+          }
+        );
 
 
     if (recordError) {
@@ -118,9 +139,11 @@ function StudentDetail() {
         recordError
       );
 
+
       setErrorMessage(
         recordError.message
       );
+
     } else {
       setCoachingRecords(
         recordData ?? []
@@ -129,79 +152,6 @@ function StudentDetail() {
 
 
     setLoading(false);
-  }
-
-
-  async function handleDelete() {
-    if (!student) {
-      return;
-    }
-
-
-    const confirmed =
-      window.confirm(
-        `${student.name} を削除しますか？`
-      );
-
-
-    if (!confirmed) {
-      return;
-    }
-
-
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("students")
-      .delete()
-      .eq(
-        "id",
-        student.id
-      )
-      .select();
-
-
-    console.log(
-      "削除結果:",
-      data
-    );
-
-    console.log(
-      "削除エラー:",
-      error
-    );
-
-
-    if (error) {
-      alert(
-        `削除に失敗しました：${error.message}`
-      );
-
-      return;
-    }
-
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-      alert(
-        "削除できませんでした。RLS設定を確認してください。"
-      );
-
-      return;
-    }
-
-
-    alert(
-      "生徒情報を削除しました"
-    );
-
-
-    navigate(
-      "/students"
-    );
   }
 
 
@@ -222,20 +172,20 @@ function StudentDetail() {
           データ取得エラー
         </h2>
 
+
         <p>
           {errorMessage}
         </p>
+
 
         <button
           type="button"
           className="cancel-button"
           onClick={() =>
-            navigate(
-              "/students"
-            )
+            navigate("/coach")
           }
         >
-          生徒一覧に戻る
+          担当コーチングに戻る
         </button>
 
       </div>
@@ -251,16 +201,15 @@ function StudentDetail() {
           生徒が見つかりません
         </h2>
 
+
         <button
           type="button"
           className="cancel-button"
           onClick={() =>
-            navigate(
-              "/students"
-            )
+            navigate("/coach")
           }
         >
-          生徒一覧に戻る
+          担当コーチングに戻る
         </button>
 
       </div>
@@ -269,48 +218,54 @@ function StudentDetail() {
 
 
   return (
-    <div className="student-detail-page">
+    <div>
 
-      {/* ヘッダー */}
+      {/* =========================
+          Header
+      ========================= */}
 
-      <header className="student-detail-header">
+      <header>
 
-        <div>
+        <div className="user-name-cell">
 
-          <h2>
-            {student.name}
-          </h2>
+          <Avatar
+            name={
+              student.name
+            }
+            avatarPath={
+              student.avatar_path
+            }
+            type="student"
+            size="medium"
+          />
 
-          <p>
-            コーチ用 生徒詳細
-          </p>
+
+          <div>
+
+            <h2>
+              {student.name}
+            </h2>
+
+
+            <p>
+              コーチ用 生徒詳細
+            </p>
+
+          </div>
 
         </div>
 
 
-        <div className="student-detail-header-actions">
+        <div className="header-actions">
 
           <button
             type="button"
             className="cancel-button"
             onClick={() =>
-              navigate(
-                "/students"
-              )
+              navigate("/coach")
             }
           >
-            生徒一覧に戻る
-          </button>
-
-
-          <button
-            type="button"
-            className="delete-button"
-            onClick={
-              handleDelete
-            }
-          >
-            生徒を削除
+            担当コーチングに戻る
           </button>
 
         </div>
@@ -318,7 +273,9 @@ function StudentDetail() {
       </header>
 
 
-      {/* 基本情報 */}
+      {/* =========================
+          Basic Info
+      ========================= */}
 
       <section className="content-card">
 
@@ -339,6 +296,7 @@ function StudentDetail() {
               プレイヤー名
             </span>
 
+
             <strong>
               {student.name}
             </strong>
@@ -351,6 +309,7 @@ function StudentDetail() {
             <span className="detail-label">
               スト6 プレイヤーID
             </span>
+
 
             <strong>
               {student.player_id ||
@@ -366,6 +325,7 @@ function StudentDetail() {
               担当コーチ
             </span>
 
+
             <strong>
               {student.coach ||
                 "-"}
@@ -379,6 +339,7 @@ function StudentDetail() {
             <span className="detail-label">
               使用キャラクター
             </span>
+
 
             <strong>
               {student.character ||
@@ -394,6 +355,7 @@ function StudentDetail() {
               ランク
             </span>
 
+
             <strong>
               {student.rank ||
                 "-"}
@@ -408,6 +370,7 @@ function StudentDetail() {
               MR
             </span>
 
+
             <strong>
               {student.mr ??
                 "-"}
@@ -420,7 +383,9 @@ function StudentDetail() {
       </section>
 
 
-      {/* 目標 */}
+      {/* =========================
+          Goal
+      ========================= */}
 
       <section className="content-card">
 
@@ -432,6 +397,7 @@ function StudentDetail() {
 
         </div>
 
+
         <p>
           {student.goal ||
             "未設定"}
@@ -440,7 +406,9 @@ function StudentDetail() {
       </section>
 
 
-      {/* コーチング要望 */}
+      {/* =========================
+          Coaching Request
+      ========================= */}
 
       <section className="content-card">
 
@@ -452,6 +420,7 @@ function StudentDetail() {
 
         </div>
 
+
         <p>
           {student.request ||
             "未設定"}
@@ -460,7 +429,9 @@ function StudentDetail() {
       </section>
 
 
-      {/* 現在の課題 */}
+      {/* =========================
+          Current Task
+      ========================= */}
 
       <section className="content-card">
 
@@ -472,6 +443,7 @@ function StudentDetail() {
 
         </div>
 
+
         <p>
           {student.task ||
             "未設定"}
@@ -480,7 +452,9 @@ function StudentDetail() {
       </section>
 
 
-      {/* プレイ可能時間 */}
+      {/* =========================
+          Game Availability
+      ========================= */}
 
       <section className="content-card">
 
@@ -492,6 +466,7 @@ function StudentDetail() {
 
         </div>
 
+
         <p>
           {student.game_availability ||
             "未設定"}
@@ -500,7 +475,9 @@ function StudentDetail() {
       </section>
 
 
-      {/* コーチング可能時間 */}
+      {/* =========================
+          Coaching Availability
+      ========================= */}
 
       <section className="content-card">
 
@@ -512,15 +489,20 @@ function StudentDetail() {
 
         </div>
 
+
         <p>
-          {student.coaching_availability ||
-            "未設定"}
+          {
+            student.coaching_availability ||
+            "未設定"
+          }
         </p>
 
       </section>
 
 
-      {/* コーチング履歴 */}
+      {/* =========================
+          Coaching History
+      ========================= */}
 
       <section className="content-card">
 
@@ -532,25 +514,13 @@ function StudentDetail() {
               コーチング履歴
             </h3>
 
+
             <span>
               {coachingRecords.length}
               件
             </span>
 
           </div>
-
-
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() =>
-              navigate(
-                `/students/${student.id}/coaching/new`
-              )
-            }
-          >
-            ＋ コーチング記録
-          </button>
 
         </div>
 
@@ -568,6 +538,7 @@ function StudentDetail() {
 
             {coachingRecords.map(
               (record) => (
+
                 <div
                   className="coaching-record"
                   key={
@@ -582,6 +553,7 @@ function StudentDetail() {
                       <strong>
                         {record.date}
                       </strong>
+
 
                       <span>
                         {record.coach ||
@@ -601,6 +573,7 @@ function StudentDetail() {
                         対戦内容
                       </h4>
 
+
                       <p>
                         {record.match_content ||
                           "-"}
@@ -614,6 +587,7 @@ function StudentDetail() {
                       <h4>
                         良かった点
                       </h4>
+
 
                       <p>
                         {record.good_points ||
@@ -629,9 +603,12 @@ function StudentDetail() {
                         改善ポイント
                       </h4>
 
+
                       <p>
-                        {record.improvement_points ||
-                          "-"}
+                        {
+                          record.improvement_points ||
+                          "-"
+                        }
                       </p>
 
                     </div>
@@ -642,6 +619,7 @@ function StudentDetail() {
                       <h4>
                         次回までの課題
                       </h4>
+
 
                       <p>
                         {record.next_task ||
@@ -659,6 +637,7 @@ function StudentDetail() {
                           コーチメモ
                         </h4>
 
+
                         <p>
                           {record.memo}
                         </p>
@@ -670,6 +649,7 @@ function StudentDetail() {
                   </div>
 
                 </div>
+
               )
             )}
 

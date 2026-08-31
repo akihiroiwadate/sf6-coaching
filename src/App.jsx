@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 
 import "./styles/app.css";
-import "./styles/student.css";
 import "./styles/coach.css";
 import "./styles/admin.css";
 
@@ -20,6 +19,7 @@ import Students from "./pages/Students";
 import StudentNew from "./pages/StudentNew";
 import StudentDetail from "./pages/StudentDetail";
 import StudentMyPage from "./pages/StudentMyPage";
+import StudentCoachingStatus from "./pages/StudentCoachingStatus";
 
 import Coaches from "./pages/Coaches";
 import CoachNew from "./pages/CoachNew";
@@ -141,6 +141,7 @@ function MainLayout({
       <aside className="sidebar">
 
         <div className="sidebar-logo">
+
           <h1>
             SF6 Coaching
           </h1>
@@ -148,6 +149,7 @@ function MainLayout({
           <p>
             Coaching Management
           </p>
+
         </div>
 
 
@@ -155,6 +157,7 @@ function MainLayout({
 
           {role === "student" && (
             <>
+
               <span>
                 生徒
               </span>
@@ -163,12 +166,14 @@ function MainLayout({
                 {studentName ||
                   "ログイン中"}
               </strong>
+
             </>
           )}
 
 
           {role === "coach" && (
             <>
+
               <span>
                 コーチ
               </span>
@@ -177,12 +182,14 @@ function MainLayout({
                 {coachName ||
                   "ログイン中"}
               </strong>
+
             </>
           )}
 
 
           {role === "admin" && (
             <>
+
               <span>
                 管理者
               </span>
@@ -190,6 +197,7 @@ function MainLayout({
               <strong>
                 管理者
               </strong>
+
             </>
           )}
 
@@ -226,6 +234,20 @@ function MainLayout({
                 }
               >
                 コーチング申し込み
+              </Link>
+
+
+              <Link
+                to="/student/coaching/status"
+                className={
+                  isActive(
+                    "/student/coaching/status"
+                  )
+                    ? "active"
+                    : ""
+                }
+              >
+                申込状況
               </Link>
 
             </>
@@ -272,7 +294,9 @@ function MainLayout({
               <Link
                 to="/admin"
                 className={
-                  isActive("/admin")
+                  isActive(
+                    "/admin"
+                  )
                     ? "active"
                     : ""
                 }
@@ -315,12 +339,16 @@ function MainLayout({
 
 
         <div className="sidebar-footer">
+
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={
+              handleLogout
+            }
           >
             ログアウト
           </button>
+
         </div>
 
       </aside>
@@ -344,17 +372,23 @@ function AppRoutes() {
 
 
   function getHomePath() {
-    if (role === "student") {
+    if (
+      role === "student"
+    ) {
       return studentId
         ? `/mypage/${studentId}`
         : "/login";
     }
 
-    if (role === "coach") {
+    if (
+      role === "coach"
+    ) {
       return "/coach";
     }
 
-    if (role === "admin") {
+    if (
+      role === "admin"
+    ) {
       return "/admin";
     }
 
@@ -367,7 +401,9 @@ function AppRoutes() {
 
       <Route
         path="/login"
-        element={<Login />}
+        element={
+          <Login />
+        }
       />
 
 
@@ -375,6 +411,7 @@ function AppRoutes() {
         path="/admin"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -382,6 +419,7 @@ function AppRoutes() {
             >
               <Dashboard />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -391,6 +429,7 @@ function AppRoutes() {
         path="/students"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -398,6 +437,7 @@ function AppRoutes() {
             >
               <Students />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -407,6 +447,7 @@ function AppRoutes() {
         path="/students/new"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -414,6 +455,7 @@ function AppRoutes() {
             >
               <StudentNew />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -423,6 +465,7 @@ function AppRoutes() {
         path="/students/:id"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -431,6 +474,7 @@ function AppRoutes() {
             >
               <StudentDetail />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -440,6 +484,7 @@ function AppRoutes() {
         path="/students/:id/coaching/new"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "coach",
@@ -448,6 +493,7 @@ function AppRoutes() {
             >
               <CoachingNew />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -457,6 +503,7 @@ function AppRoutes() {
         path="/coaches"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -464,6 +511,7 @@ function AppRoutes() {
             >
               <Coaches />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -473,6 +521,7 @@ function AppRoutes() {
         path="/coaches/new"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -480,6 +529,7 @@ function AppRoutes() {
             >
               <CoachNew />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -489,6 +539,7 @@ function AppRoutes() {
         path="/coaches/:id"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "admin",
@@ -496,6 +547,7 @@ function AppRoutes() {
             >
               <CoachDetail />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -505,6 +557,7 @@ function AppRoutes() {
         path="/coach"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "coach",
@@ -512,6 +565,7 @@ function AppRoutes() {
             >
               <CoachDashboard />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -521,6 +575,7 @@ function AppRoutes() {
         path="/coach/requests"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "coach",
@@ -528,6 +583,7 @@ function AppRoutes() {
             >
               <CoachRequests />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -537,6 +593,7 @@ function AppRoutes() {
         path="/mypage/:id"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "student",
@@ -544,6 +601,7 @@ function AppRoutes() {
             >
               <StudentMyPage />
             </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -553,6 +611,7 @@ function AppRoutes() {
         path="/coaching/apply"
         element={
           <MainLayout>
+
             <RoleRoute
               allowedRoles={[
                 "student",
@@ -560,6 +619,25 @@ function AppRoutes() {
             >
               <CoachingApply />
             </RoleRoute>
+
+          </MainLayout>
+        }
+      />
+
+
+      <Route
+        path="/student/coaching/status"
+        element={
+          <MainLayout>
+
+            <RoleRoute
+              allowedRoles={[
+                "student",
+              ]}
+            >
+              <StudentCoachingStatus />
+            </RoleRoute>
+
           </MainLayout>
         }
       />
@@ -569,7 +647,9 @@ function AppRoutes() {
         path="/"
         element={
           <Navigate
-            to={getHomePath()}
+            to={
+              getHomePath()
+            }
             replace
           />
         }
@@ -580,7 +660,9 @@ function AppRoutes() {
         path="*"
         element={
           <Navigate
-            to={getHomePath()}
+            to={
+              getHomePath()
+            }
             replace
           />
         }

@@ -771,3 +771,230 @@
   }
 
 }
+
+/* =========================================
+   コーチング申し込み 拒否
+========================================= */
+
+.coach-request-reject-button {
+  padding: 12px 20px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.coach-request-reject-button:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.coach-request-reject-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+/* =========================================
+   拒否理由モーダル
+========================================= */
+
+.coach-reject-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.coach-reject-modal {
+  width: 100%;
+  max-width: 520px;
+
+  overflow: hidden;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 20px 50px
+    rgba(15, 23, 42, 0.2);
+}
+
+.coach-reject-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 24px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coach-reject-modal-header h3 {
+  margin: 0 0 6px;
+
+  color: #111827;
+  font-size: 20px;
+}
+
+.coach-reject-modal-header p {
+  margin: 0;
+
+  color: #64748b;
+  font-size: 14px;
+}
+
+.coach-reject-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #64748b;
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.coach-reject-modal-close:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.coach-reject-modal-body {
+  padding: 24px;
+}
+
+.coach-reject-label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.coach-reject-textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 120px;
+
+  padding: 12px 14px;
+
+  resize: vertical;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #0f172a;
+  font: inherit;
+
+  box-sizing: border-box;
+}
+
+.coach-reject-textarea:focus {
+  border-color: #16a34a;
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 163, 74, 0.1);
+}
+
+.coach-reject-character-count {
+  margin-top: 6px;
+
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: right;
+}
+
+.coach-reject-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 18px 24px;
+
+  border-top: 1px solid #e5e7eb;
+
+  background: #f8fafc;
+}
+
+.coach-reject-confirm-button {
+  padding: 11px 20px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: #dc2626;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.coach-reject-confirm-button:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.coach-reject-confirm-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+@media (max-width: 600px) {
+  .coach-request-actions {
+    flex-wrap: wrap;
+  }
+
+  .coach-request-reject-button,
+  .coach-request-actions .primary-button,
+  .coach-request-actions .cancel-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .coach-reject-modal {
+    max-width: none;
+  }
+
+  .coach-reject-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .coach-reject-modal-actions button {
+    width: 100%;
+  }
+}

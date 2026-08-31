@@ -1,0 +1,283 @@
+/* =========================
+   Avatar
+========================= */
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  font-weight: 700;
+
+  user-select: none;
+}
+
+
+/* =========================
+   Avatar Image
+========================= */
+
+.user-avatar > img {
+  display: block;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  max-width: 100% !important;
+  max-height: 100% !important;
+
+  object-fit: cover;
+
+  border-radius: 50%;
+}
+
+
+/* =========================
+   Student
+========================= */
+
+.user-avatar-student {
+  border: 1px solid #bfdbfe;
+
+  background: #dbeafe;
+
+  color: #1d4ed8;
+}
+
+
+/* =========================
+   Coach
+========================= */
+
+.user-avatar-coach {
+  border: 1px solid #bbf7d0;
+
+  background: #dcfce7;
+
+  color: #15803d;
+}
+
+
+/* =========================
+   Sizes
+========================= */
+
+.user-avatar-small {
+  width: 32px !important;
+  height: 32px !important;
+
+  min-width: 32px;
+  min-height: 32px;
+
+  max-width: 32px;
+  max-height: 32px;
+
+  font-size: 12px;
+}
+
+
+.user-avatar-medium {
+  width: 42px !important;
+  height: 42px !important;
+
+  min-width: 42px;
+  min-height: 42px;
+
+  max-width: 42px;
+  max-height: 42px;
+
+  font-size: 15px;
+}
+
+
+.user-avatar-large {
+  width: 82px !important;
+  height: 82px !important;
+
+  min-width: 82px;
+  min-height: 82px;
+
+  max-width: 82px;
+  max-height: 82px;
+
+  font-size: 28px;
+}
+
+
+/* =========================
+   Name Cell
+========================= */
+
+.user-name-cell {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  min-width: 0;
+}
+
+
+/* =========================
+   Avatar Uploader
+========================= */
+
+.avatar-uploader {
+  display: flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  width: auto;
+}
+
+
+.avatar-click-button {
+  position: relative;
+
+  display: block;
+
+  flex: 0 0 82px;
+
+  width: 82px !important;
+  height: 82px !important;
+
+  min-width: 82px;
+  min-height: 82px;
+
+  max-width: 82px;
+  max-height: 82px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+
+.avatar-click-button:disabled {
+  cursor: wait;
+}
+
+
+/* =========================
+   Hover
+========================= */
+
+.avatar-click-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 82px;
+  height: 82px;
+
+  border-radius: 50%;
+
+  background: rgba(15, 23, 42, 0.58);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  opacity: 0;
+
+  transition: opacity 0.2s ease;
+}
+
+
+.avatar-click-button:hover
+.avatar-click-overlay {
+  opacity: 1;
+}
+
+
+.avatar-click-button:focus-visible {
+  outline: 3px solid #93c5fd;
+
+  outline-offset: 3px;
+}
+
+
+/* =========================
+   File Input
+========================= */
+
+.avatar-file-input {
+  display: none;
+}
+
+
+/* =========================
+   Error
+========================= */
+
+.avatar-upload-error {
+  margin: 0;
+
+  color: #dc2626;
+
+  font-size: 12px;
+}
+
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 600px) {
+
+  .user-avatar-large {
+    width: 72px !important;
+    height: 72px !important;
+
+    min-width: 72px;
+    min-height: 72px;
+
+    max-width: 72px;
+    max-height: 72px;
+
+    font-size: 24px;
+  }
+
+
+  .avatar-click-button {
+    flex-basis: 72px;
+
+    width: 72px !important;
+    height: 72px !important;
+
+    min-width: 72px;
+    min-height: 72px;
+
+    max-width: 72px;
+    max-height: 72px;
+  }
+
+
+  .avatar-click-overlay {
+    width: 72px;
+    height: 72px;
+  }
+
+}

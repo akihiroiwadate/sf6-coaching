@@ -11,7 +11,14 @@ import {
   supabase,
 } from "../supabase";
 
+import Avatar
+  from "../components/common/Avatar";
+
+import AvatarUploader
+  from "../components/common/AvatarUploader";
+
 import "../styles/coaching.css";
+import "../styles/avatar.css";
 
 
 const COACHING_TYPE_LABELS = {
@@ -107,19 +114,28 @@ function getPreferredDateTime(
 
 function CoachDashboard() {
   const [
+    coach,
+    setCoach,
+  ] = useState(null);
+
+
+  const [
     acceptedRequests,
     setAcceptedRequests,
   ] = useState([]);
+
 
   const [
     completedRequests,
     setCompletedRequests,
   ] = useState([]);
 
+
   const [
     loading,
     setLoading,
   ] = useState(true);
+
 
   const [
     error,
@@ -132,6 +148,7 @@ function CoachDashboard() {
       "coachId"
     );
 
+
   const coachName =
     localStorage.getItem(
       "coachName"
@@ -139,17 +156,20 @@ function CoachDashboard() {
 
 
   useEffect(() => {
-    loadRequests();
+    loadDashboard();
   }, []);
 
 
-  async function loadRequests() {
+  async function loadDashboard() {
     try {
       setLoading(true);
+
       setError("");
 
 
       if (!coachId) {
+        setCoach(null);
+
         setAcceptedRequests(
           []
         );
@@ -166,126 +186,10 @@ function CoachDashboard() {
       }
 
 
-      /*
-       * =========================
-       * 担当中
-       * =========================
-       */
-
-      const {
-        data: acceptedData,
-        error: acceptedError,
-      } =
-        await supabase
-          .from(
-            "coaching_requests"
-          )
-          .select(`
-            id,
-            student_id,
-            coaching_type,
-            preferred_date,
-            preferred_time,
-            request,
-            replay_id,
-            replay_image_path,
-            status,
-            coach_id,
-            accepted_at,
-            created_at,
-            students (
-              id,
-              name
-            )
-          `)
-          .eq(
-            "status",
-            "accepted"
-          )
-          .eq(
-            "coach_id",
-            Number(
-              coachId
-            )
-          )
-          .order(
-            "accepted_at",
-            {
-              ascending: true,
-            }
-          );
-
-
-      if (acceptedError) {
-        throw acceptedError;
-      }
-
-
-      setAcceptedRequests(
-        acceptedData || []
-      );
-
-
-      /*
-       * =========================
-       * 完了済み
-       * =========================
-       */
-
-      const {
-        data: completedData,
-        error: completedError,
-      } =
-        await supabase
-          .from(
-            "coaching_requests"
-          )
-          .select(`
-            id,
-            student_id,
-            coaching_type,
-            preferred_date,
-            preferred_time,
-            request,
-            replay_id,
-            replay_image_path,
-            status,
-            coach_id,
-            accepted_at,
-            created_at,
-            updated_at,
-            students (
-              id,
-              name
-            )
-          `)
-          .eq(
-            "status",
-            "completed"
-          )
-          .eq(
-            "coach_id",
-            Number(
-              coachId
-            )
-          )
-          .order(
-            "updated_at",
-            {
-              ascending: false,
-            }
-          )
-          .limit(10);
-
-
-      if (completedError) {
-        throw completedError;
-      }
-
-
-      setCompletedRequests(
-        completedData || []
-      );
+      await Promise.all([
+        loadCoach(),
+        loadRequests(),
+      ]);
 
     } catch (err) {
       console.error(
@@ -308,6 +212,212 @@ function CoachDashboard() {
   }
 
 
+  /*
+   * =========================
+   * コーチ情報
+   * =========================
+   */
+
+  async function loadCoach() {
+    const {
+      data,
+      error: coachError,
+    } = await supabase
+      .from("coaches")
+      .select(`
+        id,
+        name,
+        avatar_path
+      `)
+      .eq(
+        "id",
+        Number(
+          coachId
+        )
+      )
+      .maybeSingle();
+
+
+    if (coachError) {
+      throw coachError;
+    }
+
+
+    setCoach(
+      data || null
+    );
+  }
+
+
+  /*
+   * =========================
+   * コーチアイコン更新
+   * =========================
+   */
+
+  function handleCoachAvatarUploaded(
+    avatarPath
+  ) {
+    setCoach(
+      (
+        currentCoach
+      ) => {
+
+        if (!currentCoach) {
+          return currentCoach;
+        }
+
+
+        return {
+          ...currentCoach,
+
+          avatar_path:
+            avatarPath,
+        };
+      }
+    );
+  }
+
+
+  /*
+   * =========================
+   * コーチング情報
+   * =========================
+   */
+
+  async function loadRequests() {
+
+    /*
+     * =========================
+     * 担当中
+     * =========================
+     */
+
+    const {
+      data: acceptedData,
+      error: acceptedError,
+    } =
+      await supabase
+        .from(
+          "coaching_requests"
+        )
+        .select(`
+          id,
+          student_id,
+          coaching_type,
+          preferred_date,
+          preferred_time,
+          request,
+          replay_id,
+          replay_image_path,
+          status,
+          coach_id,
+          accepted_at,
+          created_at,
+          students (
+            id,
+            name,
+            avatar_path
+          )
+        `)
+        .eq(
+          "status",
+          "accepted"
+        )
+        .eq(
+          "coach_id",
+          Number(
+            coachId
+          )
+        )
+        .order(
+          "accepted_at",
+          {
+            ascending: true,
+          }
+        );
+
+
+    if (acceptedError) {
+      throw acceptedError;
+    }
+
+
+    setAcceptedRequests(
+      acceptedData || []
+    );
+
+
+    /*
+     * =========================
+     * 完了済み
+     * =========================
+     */
+
+    const {
+      data: completedData,
+      error: completedError,
+    } =
+      await supabase
+        .from(
+          "coaching_requests"
+        )
+        .select(`
+          id,
+          student_id,
+          coaching_type,
+          preferred_date,
+          preferred_time,
+          request,
+          replay_id,
+          replay_image_path,
+          status,
+          coach_id,
+          accepted_at,
+          created_at,
+          updated_at,
+          students (
+            id,
+            name,
+            avatar_path
+          )
+        `)
+        .eq(
+          "status",
+          "completed"
+        )
+        .eq(
+          "coach_id",
+          Number(
+            coachId
+          )
+        )
+        .order(
+          "updated_at",
+          {
+            ascending: false,
+          }
+        )
+        .limit(10);
+
+
+    if (completedError) {
+      throw completedError;
+    }
+
+
+    setCompletedRequests(
+      completedData || []
+    );
+  }
+
+
+  /*
+   * =========================
+   * Loading
+   * =========================
+   */
+
   if (loading) {
     return (
       <div>
@@ -319,6 +429,7 @@ function CoachDashboard() {
             <h2>
               担当コーチング
             </h2>
+
 
             <p>
               担当情報を
@@ -334,22 +445,86 @@ function CoachDashboard() {
   }
 
 
+  /*
+   * =========================
+   * Render
+   * =========================
+   */
+
   return (
     <div>
 
+      {/* =====================
+          コーチ情報
+      ===================== */}
+
       <header>
 
-        <div>
+        <div
+          style={{
+            display:
+              "flex",
+            alignItems:
+              "center",
+            gap:
+              "14px",
+          }}
+        >
 
-          <h2>
-            担当コーチング
-          </h2>
+          {coach ? (
 
-          <p>
-            {coachName
-              ? `${coachName}さんが担当しているコーチングです`
-              : "あなたが担当しているコーチングです"}
-          </p>
+            <AvatarUploader
+              userId={
+                coach.id
+              }
+              name={
+                coach.name
+              }
+              avatarPath={
+                coach.avatar_path
+              }
+              userType="coach"
+              tableName="coaches"
+              onUploaded={
+                handleCoachAvatarUploaded
+              }
+            />
+
+          ) : (
+
+            <Avatar
+              name={
+                coachName ||
+                "コーチ"
+              }
+              avatarPath={
+                null
+              }
+              type="coach"
+              size="large"
+            />
+
+          )}
+
+
+          <div>
+
+            <h2>
+              担当コーチング
+            </h2>
+
+
+            <p>
+              {coach?.name ||
+              coachName
+                ? `${
+                    coach?.name ||
+                    coachName
+                  }さんが担当しているコーチングです`
+                : "あなたが担当しているコーチングです"}
+            </p>
+
+          </div>
 
         </div>
 
@@ -357,9 +532,11 @@ function CoachDashboard() {
 
 
       {error && (
+
         <p className="error-message">
           {error}
         </p>
+
       )}
 
 
@@ -375,11 +552,13 @@ function CoachDashboard() {
             担当中
           </span>
 
+
           <strong>
             {
               acceptedRequests.length
             }
           </strong>
+
 
           <small>
             件
@@ -394,11 +573,13 @@ function CoachDashboard() {
             完了
           </span>
 
+
           <strong>
             {
               completedRequests.length
             }
           </strong>
+
 
           <small>
             件
@@ -422,6 +603,7 @@ function CoachDashboard() {
             <h3>
               対応中のコーチング
             </h3>
+
 
             <p>
               受諾済みで、
@@ -481,30 +663,75 @@ function CoachDashboard() {
                     className="coaching-record"
                   >
 
+                    {/* =====================
+                        生徒情報
+                    ===================== */}
+
                     <div className="coaching-record-header">
 
-                      <div>
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                          gap:
+                            "12px",
+                        }}
+                      >
 
-                        <strong>
-                          {
+                        <Avatar
+                          name={
                             studentName
                           }
-                        </strong>
-
-
-                        <span>
-                          担当中
-                        </span>
-
-
-                        <span>
-                          {
-                            COACHING_TYPE_LABELS[
-                              item.coaching_type
-                            ] ||
-                            item.coaching_type
+                          avatarPath={
+                            item.students
+                              ?.avatar_path
                           }
-                        </span>
+                          type="student"
+                          size="medium"
+                        />
+
+
+                        <div>
+
+                          <strong>
+                            {
+                              studentName
+                            }
+                          </strong>
+
+
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              alignItems:
+                                "center",
+                              gap:
+                                "8px",
+                              marginTop:
+                                "4px",
+                            }}
+                          >
+
+                            <span>
+                              担当中
+                            </span>
+
+
+                            <span>
+                              {
+                                COACHING_TYPE_LABELS[
+                                  item.coaching_type
+                                ] ||
+                                item.coaching_type
+                              }
+                            </span>
+
+                          </div>
+
+                        </div>
 
                       </div>
 
@@ -518,6 +745,7 @@ function CoachDashboard() {
                         <h4>
                           希望日時
                         </h4>
+
 
                         <p>
                           {
@@ -535,6 +763,7 @@ function CoachDashboard() {
                         <h4>
                           リプレイID
                         </h4>
+
 
                         <p>
                           {item.replay_id ||
@@ -554,6 +783,7 @@ function CoachDashboard() {
                         <h4>
                           相談内容
                         </h4>
+
 
                         <p
                           style={{
@@ -611,6 +841,7 @@ function CoachDashboard() {
             )}
 
           </div>
+
         )}
 
       </section>
@@ -629,6 +860,7 @@ function CoachDashboard() {
             <h3>
               完了したコーチング
             </h3>
+
 
             <p>
               過去にあなたが
@@ -690,28 +922,69 @@ function CoachDashboard() {
 
                     <div className="coaching-record-header">
 
-                      <div>
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                          gap:
+                            "12px",
+                        }}
+                      >
 
-                        <strong>
-                          {
+                        <Avatar
+                          name={
                             studentName
                           }
-                        </strong>
-
-
-                        <span>
-                          完了
-                        </span>
-
-
-                        <span>
-                          {
-                            COACHING_TYPE_LABELS[
-                              item.coaching_type
-                            ] ||
-                            item.coaching_type
+                          avatarPath={
+                            item.students
+                              ?.avatar_path
                           }
-                        </span>
+                          type="student"
+                          size="medium"
+                        />
+
+
+                        <div>
+
+                          <strong>
+                            {
+                              studentName
+                            }
+                          </strong>
+
+
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              alignItems:
+                                "center",
+                              gap:
+                                "8px",
+                              marginTop:
+                                "4px",
+                            }}
+                          >
+
+                            <span>
+                              完了
+                            </span>
+
+
+                            <span>
+                              {
+                                COACHING_TYPE_LABELS[
+                                  item.coaching_type
+                                ] ||
+                                item.coaching_type
+                              }
+                            </span>
+
+                          </div>
+
+                        </div>
 
                       </div>
 
@@ -725,6 +998,7 @@ function CoachDashboard() {
                         <h4>
                           希望日時
                         </h4>
+
 
                         <p>
                           {
@@ -742,6 +1016,7 @@ function CoachDashboard() {
                         <h4>
                           完了日時
                         </h4>
+
 
                         <p>
                           {
@@ -764,6 +1039,7 @@ function CoachDashboard() {
                         <h4>
                           相談内容
                         </h4>
+
 
                         <p
                           style={{
@@ -809,6 +1085,7 @@ function CoachDashboard() {
             )}
 
           </div>
+
         )}
 
       </section>

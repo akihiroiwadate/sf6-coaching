@@ -179,3 +179,310 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================
+   My Page Profile
+========================= */
+
+.student-mypage-profile {
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+
+.student-mypage-profile-text h2 {
+  margin: 0 0 4px;
+}
+
+
+.student-mypage-profile-text > p {
+  margin: 0;
+
+  color: #64748b;
+}
+
+
+.student-mypage-profile-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+
+.student-mypage-profile-meta span {
+  padding: 5px 10px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+
+  background: #eff6ff;
+
+  color: #1d4ed8;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+@media (max-width: 600px) {
+
+  .student-mypage-profile {
+    align-items: flex-start;
+  }
+
+}
+
+/* =========================================
+   MR推移
+========================================= */
+
+.mr-growth-section {
+  margin-top: 24px;
+  padding-top: 24px;
+
+  border-top: 1px solid #dbeafe;
+}
+
+.mr-growth-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+.mr-growth-header h4 {
+  margin: 0 0 5px;
+
+  color: #0f172a;
+  font-size: 17px;
+}
+
+.mr-growth-header p {
+  margin: 0;
+
+  color: #64748b;
+  font-size: 13px;
+}
+
+.mr-growth-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 11px;
+
+  border-radius: 999px;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================================
+   グラフ
+========================================= */
+
+.mr-chart-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.mr-chart {
+  display: block;
+
+  width: 100%;
+  min-width: 600px;
+  height: auto;
+}
+
+.mr-chart-grid-line {
+  stroke: #e2e8f0;
+  stroke-width: 1;
+}
+
+.mr-chart-axis-text {
+  fill: #94a3b8;
+
+  font-size: 12px;
+}
+
+.mr-chart-line {
+  fill: none;
+
+  stroke: #2563eb;
+  stroke-width: 4;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mr-chart-point {
+  fill: #2563eb;
+
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.mr-chart-value {
+  fill: #1d4ed8;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mr-chart-date {
+  fill: #64748b;
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   MRデータなし
+========================================= */
+
+.mr-growth-empty {
+  padding: 32px 20px;
+
+  border: 1px dashed #bfdbfe;
+  border-radius: 10px;
+
+  background: #f8fbff;
+
+  text-align: center;
+}
+
+.mr-growth-empty p {
+  margin: 0 0 6px;
+
+  color: #334155;
+  font-weight: 700;
+}
+
+.mr-growth-empty span {
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 700px) {
+  .mr-growth-header {
+    align-items: center;
+  }
+
+  .mr-chart {
+    min-width: 520px;
+  }
+}
+
+/* =========================================
+   プロフィール詳細 編集
+========================================= */
+
+.student-profile-detail-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.student-profile-edit-button {
+  padding: 7px 14px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.student-profile-edit-button:hover {
+  background: #eff6ff;
+}
+
+.student-profile-detail-value {
+  margin: 18px 0 4px;
+
+  color: #1e293b;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+}
+
+.student-profile-detail-textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 90px;
+
+  margin-top: 16px;
+  padding: 12px 14px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #0f172a;
+  font: inherit;
+  line-height: 1.6;
+
+  resize: vertical;
+
+  box-sizing: border-box;
+}
+
+.student-profile-detail-textarea:focus {
+  border-color: #2563eb;
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.1);
+}
+
+.student-profile-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: -4px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .student-profile-detail-actions {
+    flex-direction: column-reverse;
+  }
+
+  .student-profile-detail-actions button {
+    width: 100%;
+  }
+}
