@@ -27,6 +27,7 @@ import CoachDetail from "./pages/CoachDetail";
 
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachRequests from "./pages/CoachRequests";
+import CoachSchedule from "./pages/CoachSchedule";
 
 import CoachingNew from "./pages/CoachingNew";
 import CoachingApply from "./pages/CoachingApply";
@@ -282,6 +283,20 @@ function MainLayout({
                 }
               >
                 担当コーチング
+              </Link>
+
+
+              <Link
+                to="/coach/schedule"
+                className={
+                  isActive(
+                    "/coach/schedule"
+                  )
+                    ? "active"
+                    : ""
+                }
+              >
+                予定管理
               </Link>
 
             </>
@@ -582,6 +597,24 @@ function AppRoutes() {
               ]}
             >
               <CoachRequests />
+            </RoleRoute>
+
+          </MainLayout>
+        }
+      />
+
+
+      <Route
+        path="/coach/schedule"
+        element={
+          <MainLayout>
+
+            <RoleRoute
+              allowedRoles={[
+                "coach",
+              ]}
+            >
+              <CoachSchedule />
             </RoleRoute>
 
           </MainLayout>

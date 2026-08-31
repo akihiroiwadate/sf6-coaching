@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -11,8 +12,25 @@ import {
   supabase,
 } from "../supabase";
 
+import CoachCalendar
+  from "../components/CoachCalendar";
+
 import "../styles/student/student.css";
 import "../styles/student/student-apply.css";
+import "../styles/coaching-time.css";
+
+
+const SESSION_DURATION_MINUTES =
+  60;
+
+const SLOT_INTERVAL_MINUTES =
+  30;
+
+const BUSINESS_START_HOUR =
+  9;
+
+const BUSINESS_END_HOUR =
+  22;
 
 
 const COACHING_TYPES = [
@@ -37,6 +55,152 @@ const COACHING_TYPES = [
 ];
 
 
+function getTodayValue() {
+  const today =
+    new Date();
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      today.getDate()
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function timeToMinutes(
+  time
+) {
+  if (!time) {
+    return 0;
+  }
+
+  const [
+    hour,
+    minute,
+  ] = time
+    .slice(0, 5)
+    .split(":")
+    .map(Number);
+
+  return (
+    hour * 60 +
+    minute
+  );
+}
+
+
+function minutesToTime(
+  minutes
+) {
+  const hour =
+    Math.floor(
+      minutes / 60
+    );
+
+  const minute =
+    minutes % 60;
+
+  return (
+    `${String(hour).padStart(
+      2,
+      "0"
+    )}:${String(minute).padStart(
+      2,
+      "0"
+    )}`
+  );
+}
+
+
+function createTimeSlots() {
+  const result = [];
+
+  const start =
+    BUSINESS_START_HOUR *
+    60;
+
+  const end =
+    BUSINESS_END_HOUR *
+    60;
+
+
+  for (
+    let current = start;
+    current +
+      SESSION_DURATION_MINUTES <=
+      end;
+    current +=
+      SLOT_INTERVAL_MINUTES
+  ) {
+    result.push(
+      minutesToTime(
+        current
+      )
+    );
+  }
+
+
+  return result;
+}
+
+
+function scheduleConflictsWithSlot(
+  schedule,
+  slotTime
+) {
+  if (
+    schedule.all_day
+  ) {
+    return true;
+  }
+
+
+  if (
+    !schedule.start_time ||
+    !schedule.end_time
+  ) {
+    return false;
+  }
+
+
+  const slotStart =
+    timeToMinutes(
+      slotTime
+    );
+
+  const slotEnd =
+    slotStart +
+    SESSION_DURATION_MINUTES;
+
+  const scheduleStart =
+    timeToMinutes(
+      schedule.start_time
+    );
+
+  const scheduleEnd =
+    timeToMinutes(
+      schedule.end_time
+    );
+
+
+  return (
+    slotStart <
+      scheduleEnd &&
+    slotEnd >
+      scheduleStart
+  );
+}
+
+
 function CoachingApply() {
   const navigate =
     useNavigate();
@@ -51,6 +215,31 @@ function CoachingApply() {
     coachingType,
     setCoachingType,
   ] = useState("online");
+
+  const [
+    coaches,
+    setCoaches,
+  ] = useState([]);
+
+  const [
+    coachId,
+    setCoachId,
+  ] = useState("free");
+
+  const [
+    schedules,
+    setSchedules,
+  ] = useState([]);
+
+  const [
+    coachesLoading,
+    setCoachesLoading,
+  ] = useState(true);
+
+  const [
+    schedulesLoading,
+    setSchedulesLoading,
+  ] = useState(true);
 
   const [
     preferredDate,
@@ -88,6 +277,374 @@ function CoachingApply() {
   ] = useState("");
 
 
+  const today =
+    getTodayValue();
+
+  const timeSlots =
+    useMemo(
+      () =>
+        createTimeSlots(),
+      []
+    );
+
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+
+  async function fetchInitialData() {
+    setCoachesLoading(true);
+    setSchedulesLoading(true);
+
+
+    const [
+      coachesResult,
+      schedulesResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from("coaches")
+          .select(
+            "id, name"
+          )
+          .order(
+            "name",
+            {
+              ascending: true,
+            }
+          ),
+
+        supabase
+          .from(
+            "coach_schedules"
+          )
+          .select(
+            `
+              id,
+              coach_id,
+              schedule_date,
+              start_time,
+              end_time,
+              all_day
+            `
+          )
+          .gte(
+            "schedule_date",
+            today
+          ),
+      ]);
+
+
+    if (
+      coachesResult.error
+    ) {
+      console.error(
+        "コーチ一覧取得エラー:",
+        coachesResult.error
+      );
+
+      setError(
+        `コーチ一覧の取得に失敗しました：${coachesResult.error.message}`
+      );
+
+      setCoaches([]);
+    } else {
+      setCoaches(
+        coachesResult.data ??
+        []
+      );
+    }
+
+
+    if (
+      schedulesResult.error
+    ) {
+      console.error(
+        "予定取得エラー:",
+        schedulesResult.error
+      );
+
+      setError(
+        `コーチ予定の取得に失敗しました：${schedulesResult.error.message}`
+      );
+
+      setSchedules([]);
+    } else {
+      setSchedules(
+        schedulesResult.data ??
+        []
+      );
+    }
+
+
+    setCoachesLoading(false);
+    setSchedulesLoading(false);
+  }
+
+
+  const selectedCoach =
+    useMemo(() => {
+      if (
+        coachId === "free"
+      ) {
+        return null;
+      }
+
+      return coaches.find(
+        (coach) =>
+          String(coach.id) ===
+          String(coachId)
+      );
+    }, [
+      coaches,
+      coachId,
+    ]);
+
+
+  function getCoachSchedulesForDate(
+    targetCoachId,
+    date
+  ) {
+    return schedules.filter(
+      (schedule) =>
+        String(
+          schedule.coach_id
+        ) ===
+          String(
+            targetCoachId
+          ) &&
+        schedule.schedule_date ===
+          date
+    );
+  }
+
+
+  function isCoachAvailableAt(
+    targetCoachId,
+    date,
+    time
+  ) {
+    const coachSchedules =
+      getCoachSchedulesForDate(
+        targetCoachId,
+        date
+      );
+
+
+    return !coachSchedules.some(
+      (schedule) =>
+        scheduleConflictsWithSlot(
+          schedule,
+          time
+        )
+    );
+  }
+
+
+  function isTimeDisabled(
+    time
+  ) {
+    if (!preferredDate) {
+      return true;
+    }
+
+
+    if (
+      coachId !== "free"
+    ) {
+      return !isCoachAvailableAt(
+        coachId,
+        preferredDate,
+        time
+      );
+    }
+
+
+    if (
+      coaches.length === 0
+    ) {
+      return true;
+    }
+
+
+    const hasAvailableCoach =
+      coaches.some(
+        (coach) =>
+          isCoachAvailableAt(
+            coach.id,
+            preferredDate,
+            time
+          )
+      );
+
+
+    return !hasAvailableCoach;
+  }
+
+
+  const disabledDates =
+    useMemo(() => {
+      if (
+        coachId !== "free"
+      ) {
+        return [
+          ...new Set(
+            schedules
+              .filter(
+                (schedule) =>
+                  String(
+                    schedule.coach_id
+                  ) ===
+                    String(
+                      coachId
+                    ) &&
+                  schedule.all_day
+              )
+              .map(
+                (schedule) =>
+                  schedule.schedule_date
+              )
+          ),
+        ];
+      }
+
+
+      if (
+        coaches.length === 0
+      ) {
+        return [];
+      }
+
+
+      const allDayDates =
+        new Map();
+
+
+      schedules
+        .filter(
+          (schedule) =>
+            schedule.all_day
+        )
+        .forEach(
+          (schedule) => {
+            if (
+              !allDayDates.has(
+                schedule.schedule_date
+              )
+            ) {
+              allDayDates.set(
+                schedule.schedule_date,
+                new Set()
+              );
+            }
+
+
+            allDayDates
+              .get(
+                schedule.schedule_date
+              )
+              .add(
+                String(
+                  schedule.coach_id
+                )
+              );
+          }
+        );
+
+
+      const result = [];
+
+
+      allDayDates.forEach(
+        (
+          unavailableCoachIds,
+          date
+        ) => {
+          const allUnavailable =
+            coaches.every(
+              (coach) =>
+                unavailableCoachIds.has(
+                  String(
+                    coach.id
+                  )
+                )
+            );
+
+
+          if (
+            allUnavailable
+          ) {
+            result.push(
+              date
+            );
+          }
+        }
+      );
+
+
+      return result;
+
+    }, [
+      coachId,
+      coaches,
+      schedules,
+    ]);
+
+
+  useEffect(() => {
+    setPreferredTime("");
+
+    if (
+      preferredDate &&
+      disabledDates.includes(
+        preferredDate
+      )
+    ) {
+      setPreferredDate("");
+    }
+  }, [
+    coachId,
+    disabledDates,
+  ]);
+
+
+  useEffect(() => {
+    if (
+      preferredTime &&
+      isTimeDisabled(
+        preferredTime
+      )
+    ) {
+      setPreferredTime("");
+    }
+  }, [
+    preferredDate,
+    schedules,
+  ]);
+
+
+  const availableTimeCount =
+    useMemo(() => {
+      if (!preferredDate) {
+        return 0;
+      }
+
+      return timeSlots.filter(
+        (time) =>
+          !isTimeDisabled(
+            time
+          )
+      ).length;
+    }, [
+      preferredDate,
+      coachId,
+      coaches,
+      schedules,
+      timeSlots,
+    ]);
+
+
   const previewUrl =
     useMemo(() => {
       if (!replayImage) {
@@ -102,6 +659,19 @@ function CoachingApply() {
     ]);
 
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl
+        );
+      }
+    };
+  }, [
+    previewUrl,
+  ]);
+
+
   function handleImageChange(
     event
   ) {
@@ -110,6 +680,7 @@ function CoachingApply() {
 
     if (!file) {
       setReplayImage(null);
+
       return;
     }
 
@@ -122,6 +693,7 @@ function CoachingApply() {
       return null;
     }
 
+
     const extension =
       replayImage.name
         .split(".")
@@ -132,6 +704,7 @@ function CoachingApply() {
 
     const path =
       `${studentId}/${fileName}`;
+
 
     const {
       error: uploadError,
@@ -145,9 +718,11 @@ function CoachingApply() {
           replayImage
         );
 
+
     if (uploadError) {
       throw uploadError;
     }
+
 
     return path;
   }
@@ -164,6 +739,60 @@ function CoachingApply() {
     if (!studentId) {
       setError(
         "生徒情報を取得できません。もう一度ログインしてください。"
+      );
+
+      return;
+    }
+
+
+    if (
+      coachingType !==
+        "replay" &&
+      !preferredDate
+    ) {
+      setError(
+        "希望日を選択してください。"
+      );
+
+      return;
+    }
+
+
+    if (
+      coachingType !==
+        "replay" &&
+      !preferredTime
+    ) {
+      setError(
+        "希望時間を選択してください。"
+      );
+
+      return;
+    }
+
+
+    if (
+      preferredDate &&
+      disabledDates.includes(
+        preferredDate
+      )
+    ) {
+      setError(
+        "選択した日はコーチが対応できません。別の日を選択してください。"
+      );
+
+      return;
+    }
+
+
+    if (
+      preferredTime &&
+      isTimeDisabled(
+        preferredTime
+      )
+    ) {
+      setError(
+        "選択した時間はコーチが対応できません。別の時間を選択してください。"
       );
 
       return;
@@ -195,6 +824,7 @@ function CoachingApply() {
     try {
       setSubmitting(true);
 
+
       let replayImagePath =
         null;
 
@@ -217,6 +847,13 @@ function CoachingApply() {
               Number(
                 studentId
               ),
+
+            coach_id:
+              coachId === "free"
+                ? null
+                : Number(
+                    coachId
+                  ),
 
             coaching_type:
               coachingType,
@@ -266,10 +903,9 @@ function CoachingApply() {
 
 
       setError(
-        `申し込みに失敗しました。${
-          err?.message
-            ? ` ${err.message}`
-            : ""
+        `申し込みに失敗しました：${
+          err?.message ||
+          "原因不明のエラー"
         }`
       );
 
@@ -281,10 +917,6 @@ function CoachingApply() {
 
   return (
     <div className="coaching-apply-page">
-
-      {/* =====================
-          Header
-      ===================== */}
 
       <header className="coaching-apply-header">
 
@@ -335,10 +967,6 @@ function CoachingApply() {
         }
       >
 
-        {/* =====================
-            Coaching Type
-        ===================== */}
-
         <section className="coaching-apply-section">
 
           <div className="apply-section-heading">
@@ -348,6 +976,7 @@ function CoachingApply() {
             </span>
 
             <div>
+
               <h3>
                 コーチングの種類
               </h3>
@@ -356,6 +985,7 @@ function CoachingApply() {
                 受けたい方法を
                 選んでください
               </p>
+
             </div>
 
           </div>
@@ -365,6 +995,7 @@ function CoachingApply() {
 
             {COACHING_TYPES.map(
               (type) => (
+
                 <label
                   key={
                     type.value
@@ -389,11 +1020,20 @@ function CoachingApply() {
                       coachingType ===
                       type.value
                     }
-                    onChange={() =>
+                    onChange={() => {
                       setCoachingType(
                         type.value
-                      )
-                    }
+                      );
+
+                      if (
+                        type.value ===
+                        "replay"
+                      ) {
+                        setPreferredTime(
+                          ""
+                        );
+                      }
+                    }}
                   />
 
 
@@ -417,6 +1057,7 @@ function CoachingApply() {
                   </div>
 
                 </label>
+
               )
             )}
 
@@ -424,10 +1065,6 @@ function CoachingApply() {
 
         </section>
 
-
-        {/* =====================
-            Date
-        ===================== */}
 
         <section className="coaching-apply-section">
 
@@ -438,84 +1075,97 @@ function CoachingApply() {
             </span>
 
             <div>
+
               <h3>
-                希望日時
+                希望コーチ
               </h3>
 
               <p>
-                希望する日時を
-                入力してください
+                コーチを指定するか、
+                フリーで申し込めます
               </p>
-            </div>
-
-          </div>
-
-
-          <div className="coaching-date-grid">
-
-            <div className="form-group">
-
-              <label htmlFor="preferredDate">
-                希望日
-              </label>
-
-              <input
-                id="preferredDate"
-                type="date"
-                value={
-                  preferredDate
-                }
-                onChange={(event) =>
-                  setPreferredDate(
-                    event.target
-                      .value
-                  )
-                }
-              />
-
-            </div>
-
-
-            <div className="form-group">
-
-              <label htmlFor="preferredTime">
-                希望時間
-              </label>
-
-              <input
-                id="preferredTime"
-                type="time"
-                value={
-                  preferredTime
-                }
-                onChange={(event) =>
-                  setPreferredTime(
-                    event.target
-                      .value
-                  )
-                }
-              />
 
             </div>
 
           </div>
 
 
-          {coachingType ===
-            "replay" && (
+          <div className="form-group">
+
+            <label htmlFor="coachId">
+              希望コーチ
+            </label>
+
+
+            <select
+              id="coachId"
+              value={
+                coachId
+              }
+              disabled={
+                coachesLoading
+              }
+              onChange={(event) => {
+                setCoachId(
+                  event.target.value
+                );
+
+                setPreferredTime(
+                  ""
+                );
+              }}
+            >
+
+              <option value="free">
+                フリー（コーチ指定なし）
+              </option>
+
+
+              {coaches.map(
+                (coach) => (
+
+                  <option
+                    key={
+                      coach.id
+                    }
+                    value={
+                      coach.id
+                    }
+                  >
+                    {coach.name}
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+          </div>
+
+
+          {coachId === "free" ? (
+
             <p className="apply-note">
-              リプレイのみの場合、
-              希望日時は未入力でも
-              申し込めます。
+              対応可能なコーチが
+              申し込みを確認します
             </p>
-          )}
+
+          ) : selectedCoach ? (
+
+            <p className="apply-note">
+
+              選択中：
+
+              <strong>
+                {selectedCoach.name}
+              </strong>
+
+            </p>
+
+          ) : null}
 
         </section>
 
-
-        {/* =====================
-            Request
-        ===================== */}
 
         <section className="coaching-apply-section">
 
@@ -526,6 +1176,187 @@ function CoachingApply() {
             </span>
 
             <div>
+
+              <h3>
+                希望日時
+              </h3>
+
+              <p>
+                コーチが対応できる
+                日時から選択してください
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {schedulesLoading ? (
+
+            <p>
+              コーチの予定を
+              確認しています...
+            </p>
+
+          ) : (
+
+            <CoachCalendar
+              value={
+                preferredDate
+              }
+              onChange={(date) => {
+                setPreferredDate(
+                  date
+                );
+
+                setPreferredTime(
+                  ""
+                );
+              }}
+              disabledDates={
+                disabledDates
+              }
+              minDate={
+                today
+              }
+            />
+
+          )}
+
+
+          {preferredDate && (
+            <div className="selected-schedule-date">
+
+              希望日：
+
+              <strong>
+                {preferredDate}
+              </strong>
+
+            </div>
+          )}
+
+
+          {preferredDate &&
+            coachingType !==
+              "replay" && (
+
+            <div className="coaching-time-area">
+
+              <label>
+                希望時間
+              </label>
+
+
+              {availableTimeCount ===
+              0 ? (
+
+                <div className="coaching-time-empty">
+                  この日は対応可能な時間がありません
+                </div>
+
+              ) : (
+
+                <div className="coaching-time-grid">
+
+                  {timeSlots.map(
+                    (time) => {
+                      const disabled =
+                        isTimeDisabled(
+                          time
+                        );
+
+                      const selected =
+                        preferredTime ===
+                        time;
+
+
+                      return (
+                        <button
+                          key={
+                            time
+                          }
+                          type="button"
+                          disabled={
+                            disabled
+                          }
+                          className={
+                            `coaching-time-button ${
+                              selected
+                                ? "selected"
+                                : ""
+                            }`
+                          }
+                          onClick={() =>
+                            setPreferredTime(
+                              time
+                            )
+                          }
+                        >
+                          {time}
+                        </button>
+                      );
+                    }
+                  )}
+
+                </div>
+
+              )}
+
+
+              {preferredTime && (
+
+                <p className="coaching-time-selected">
+
+                  選択中：
+
+                  <strong>
+                    {preferredTime}
+                  </strong>
+
+                  〜
+
+                  <strong>
+                    {minutesToTime(
+                      timeToMinutes(
+                        preferredTime
+                      ) +
+                        SESSION_DURATION_MINUTES
+                    )}
+                  </strong>
+
+                </p>
+
+              )}
+
+            </div>
+
+          )}
+
+
+          {coachingType ===
+            "replay" && (
+
+            <p className="apply-note">
+              リプレイのみの場合は、
+              希望日時なしでも申し込めます
+            </p>
+
+          )}
+
+        </section>
+
+
+        <section className="coaching-apply-section">
+
+          <div className="apply-section-heading">
+
+            <span className="apply-section-number">
+              4
+            </span>
+
+            <div>
+
               <h3>
                 相談したいこと
               </h3>
@@ -535,6 +1366,7 @@ function CoachingApply() {
                 困っていることを
                 入力してください
               </p>
+
             </div>
 
           </div>
@@ -543,10 +1375,13 @@ function CoachingApply() {
           <div className="form-group">
 
             <label htmlFor="request">
+
               相談内容
+
               <span className="required-label">
                 必須
               </span>
+
             </label>
 
 
@@ -559,8 +1394,7 @@ function CoachingApply() {
               placeholder="例：対空が間に合わないことが多いので、改善するポイントを教えてほしいです"
               onChange={(event) =>
                 setRequest(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
             />
@@ -576,19 +1410,16 @@ function CoachingApply() {
         </section>
 
 
-        {/* =====================
-            Replay
-        ===================== */}
-
         <section className="coaching-apply-section">
 
           <div className="apply-section-heading">
 
             <span className="apply-section-number">
-              4
+              5
             </span>
 
             <div>
+
               <h3>
                 リプレイ
               </h3>
@@ -597,6 +1428,7 @@ function CoachingApply() {
                 確認してほしい試合が
                 ある場合は入力してください
               </p>
+
             </div>
 
           </div>
@@ -607,14 +1439,18 @@ function CoachingApply() {
             <div className="form-group">
 
               <label htmlFor="replayId">
+
                 リプレイID
 
                 {coachingType ===
                   "replay" && (
+
                   <span className="required-label">
                     必須
                   </span>
+
                 )}
+
               </label>
 
 
@@ -627,8 +1463,7 @@ function CoachingApply() {
                 placeholder="リプレイIDを入力"
                 onChange={(event) =>
                   setReplayId(
-                    event.target
-                      .value
+                    event.target.value
                   )
                 }
               />
@@ -668,17 +1503,20 @@ function CoachingApply() {
 
 
                 {replayImage && (
+
                   <small>
                     {
                       replayImage.name
                     }
                   </small>
+
                 )}
 
               </div>
 
 
               {previewUrl ? (
+
                 <div className="replay-preview">
 
                   <img
@@ -689,11 +1527,14 @@ function CoachingApply() {
                   />
 
                 </div>
+
               ) : (
+
                 <div className="replay-preview-empty">
                   写真を選択すると
                   ここに表示されます
                 </div>
+
               )}
 
             </div>
@@ -702,10 +1543,6 @@ function CoachingApply() {
 
         </section>
 
-
-        {/* =====================
-            Actions
-        ===================== */}
 
         <div className="coaching-apply-actions">
 
@@ -726,7 +1563,9 @@ function CoachingApply() {
             type="submit"
             className="primary-button"
             disabled={
-              submitting
+              submitting ||
+              coachesLoading ||
+              schedulesLoading
             }
           >
             {submitting

@@ -1,0 +1,155 @@
+/* =========================
+   Coaching Time
+========================= */
+
+.coaching-time-area {
+  margin-top: 20px;
+}
+
+.coaching-time-area > label {
+  display: block;
+
+  margin-bottom: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   Grid
+========================= */
+
+.coaching-time-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 8px;
+
+  max-width: 620px;
+}
+
+
+/* =========================
+   Time Button
+========================= */
+
+.coaching-time-button {
+  min-height: 44px;
+
+  padding: 9px 6px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+
+  background: white;
+
+  color: #334155;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.coaching-time-button:hover:not(
+  :disabled
+) {
+  border-color:
+    var(
+      --theme-primary,
+      #2563eb
+    );
+
+  background:
+    var(
+      --theme-soft,
+      #eff6ff
+    );
+}
+
+.coaching-time-button.selected {
+  border-color:
+    var(
+      --theme-primary,
+      #2563eb
+    );
+
+  background:
+    var(
+      --theme-primary,
+      #2563eb
+    );
+
+  color: white;
+}
+
+.coaching-time-button:disabled {
+  border-color: #e4e4e7;
+
+  background: #f4f4f5;
+
+  color: #a1a1aa;
+
+  cursor: not-allowed;
+
+  text-decoration: line-through;
+}
+
+
+/* =========================
+   Information
+========================= */
+
+.coaching-time-selected {
+  margin-top: 12px;
+
+  color: #475569;
+
+  font-size: 14px;
+}
+
+.coaching-time-selected strong {
+  margin-left: 5px;
+
+  color:
+    var(
+      --theme-primary,
+      #2563eb
+    );
+}
+
+.coaching-time-empty {
+  max-width: 620px;
+
+  padding: 14px;
+
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+
+  background: #fafafa;
+
+  color: #71717a;
+
+  font-size: 13px;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 600px) {
+  .coaching-time-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+}
