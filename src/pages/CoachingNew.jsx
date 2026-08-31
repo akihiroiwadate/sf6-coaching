@@ -47,6 +47,16 @@ function CoachingNew() {
       "coachName"
     ) || "コーチ";
 
+  const coachIdValue =
+    localStorage.getItem(
+      "coachId"
+    );
+
+  const coachId =
+    coachIdValue
+      ? Number(coachIdValue)
+      : null;
+
 
   const [
     student,
@@ -91,10 +101,31 @@ function CoachingNew() {
     setImprovementPoints,
   ] = useState("");
 
+
+  /* =========================
+     Coach Task
+  ========================= */
+
   const [
     nextTask,
     setNextTask,
   ] = useState("");
+
+  const [
+    taskDescription,
+    setTaskDescription,
+  ] = useState("");
+
+  const [
+    taskTargetCount,
+    setTaskTargetCount,
+  ] = useState("");
+
+  const [
+    taskDueDate,
+    setTaskDueDate,
+  ] = useState("");
+
 
   const [
     memo,
@@ -125,6 +156,10 @@ function CoachingNew() {
     requestId,
   ]);
 
+
+  /* =========================
+     Fetch
+  ========================= */
 
   async function fetchData() {
     setLoading(true);
@@ -287,6 +322,10 @@ function CoachingNew() {
   }
 
 
+  /* =========================
+     Submit
+  ========================= */
+
   async function handleSubmit(
     event
   ) {
@@ -345,6 +384,10 @@ function CoachingNew() {
     }
 
 
+    /* =========================
+       MR Validation
+    ========================= */
+
     let mrValue = null;
 
 
@@ -370,14 +413,52 @@ function CoachingNew() {
     }
 
 
+    /* =========================
+       Target Count Validation
+    ========================= */
+
+    let targetCountValue =
+      null;
+
+
+    if (
+      taskTargetCount.trim() !==
+      ""
+    ) {
+      targetCountValue =
+        Number(
+          taskTargetCount
+        );
+
+
+      if (
+        Number.isNaN(
+          targetCountValue
+        ) ||
+        targetCountValue <= 0
+      ) {
+        setErrorMessage(
+          "目標回数は1以上の数字で入力してください。"
+        );
+
+        return;
+      }
+    }
+
+
     try {
       setSaving(true);
       setErrorMessage("");
 
 
-      /*
-       * コーチング記録を保存
-       */
+      const studentId =
+        Number(id);
+
+
+      /* =========================
+         Coaching Record
+      ========================= */
+
       const {
         error: insertError,
       } =
@@ -387,7 +468,7 @@ function CoachingNew() {
           )
           .insert({
             student_id:
-              Number(id),
+              studentId,
 
             coach:
               coachName,
@@ -427,9 +508,58 @@ function CoachingNew() {
       }
 
 
-      /*
-       * 現在MRを生徒情報にも反映
-       */
+      /* =========================
+         Coach Task
+      ========================= */
+
+      const {
+        error: taskInsertError,
+      } =
+        await supabase
+          .from(
+            "student_tasks"
+          )
+          .insert({
+            student_id:
+              studentId,
+
+            task_type:
+              "coach",
+
+            title:
+              nextTask.trim(),
+
+            description:
+              taskDescription.trim() ||
+              null,
+
+            target_count:
+              targetCountValue,
+
+            current_count:
+              0,
+
+            due_date:
+              taskDueDate ||
+              null,
+
+            status:
+              "active",
+
+            coach_id:
+              coachId,
+          });
+
+
+      if (taskInsertError) {
+        throw taskInsertError;
+      }
+
+
+      /* =========================
+         Update Student MR
+      ========================= */
+
       if (
         mrValue !== null
       ) {
@@ -444,7 +574,7 @@ function CoachingNew() {
             })
             .eq(
               "id",
-              Number(id)
+              studentId
             );
 
 
@@ -456,36 +586,10 @@ function CoachingNew() {
       }
 
 
-      /*
-       * コーチからの課題も
-       * 最新の次回課題に更新
-       */
-      const {
-        error: taskUpdateError,
-      } =
-        await supabase
-          .from("students")
-          .update({
-            task:
-              nextTask.trim(),
-          })
-          .eq(
-            "id",
-            Number(id)
-          );
+      /* =========================
+         Complete Request
+      ========================= */
 
-
-      if (
-        taskUpdateError
-      ) {
-        throw taskUpdateError;
-      }
-
-
-      /*
-       * 申込経由なら
-       * completed に変更
-       */
       if (requestId) {
         const {
           error: requestUpdateError,
@@ -523,8 +627,9 @@ function CoachingNew() {
 
 
       alert(
-        "コーチング結果を保存しました。"
+        "コーチング結果と課題を保存しました。"
       );
+
 
       navigate(
         "/coach"
@@ -546,6 +651,10 @@ function CoachingNew() {
   }
 
 
+  /* =========================
+     Loading
+  ========================= */
+
   if (loading) {
     return (
       <p>
@@ -555,59 +664,88 @@ function CoachingNew() {
   }
 
 
+  /* =========================
+     Student Not Found
+  ========================= */
+
   if (!student) {
     return (
       <div>
+
         <h2>
           コーチング結果入力
         </h2>
+
 
         <p className="error-message">
           {errorMessage ||
             "生徒が見つかりません。"}
         </p>
+
       </div>
     );
   }
 
 
+  /* =========================
+     Render
+  ========================= */
+
   return (
     <div>
 
+      {/* =====================
+          Header
+      ===================== */}
+
       <header>
+
         <div>
+
           <h2>
             コーチング結果入力
           </h2>
+
 
           <p>
             {student.name}
             さんのコーチング結果を
             記録します
           </p>
+
         </div>
+
       </header>
 
 
       {errorMessage && (
+
         <p className="error-message">
           {errorMessage}
         </p>
+
       )}
 
+
+      {/* =====================
+          Student
+      ===================== */}
 
       <section className="content-card">
 
         <div className="section-title">
+
           <h3>
             生徒情報
           </h3>
+
         </div>
 
 
         <div className="student-detail-grid">
 
           <div>
+
             <span className="detail-label">
               プレイヤー名
             </span>
@@ -615,10 +753,12 @@ function CoachingNew() {
             <strong>
               {student.name}
             </strong>
+
           </div>
 
 
           <div>
+
             <span className="detail-label">
               使用キャラクター
             </span>
@@ -627,10 +767,12 @@ function CoachingNew() {
               {student.character ||
                 "-"}
             </strong>
+
           </div>
 
 
           <div>
+
             <span className="detail-label">
               現在のランク
             </span>
@@ -639,10 +781,12 @@ function CoachingNew() {
               {student.rank ||
                 "-"}
             </strong>
+
           </div>
 
 
           <div>
+
             <span className="detail-label">
               現在のMR
             </span>
@@ -651,10 +795,12 @@ function CoachingNew() {
               {student.mr ??
                 "-"}
             </strong>
+
           </div>
 
 
           <div>
+
             <span className="detail-label">
               担当コーチ
             </span>
@@ -662,6 +808,7 @@ function CoachingNew() {
             <strong>
               {coachName}
             </strong>
+
           </div>
 
         </div>
@@ -669,19 +816,27 @@ function CoachingNew() {
       </section>
 
 
+      {/* =====================
+          Request
+      ===================== */}
+
       {coachingRequest && (
+
         <section className="content-card">
 
           <div className="section-title">
+
             <h3>
               今回の申し込み
             </h3>
+
           </div>
 
 
           <div className="student-detail-grid">
 
             <div>
+
               <span className="detail-label">
                 コーチング種別
               </span>
@@ -696,10 +851,12 @@ function CoachingNew() {
                     .coaching_type
                 }
               </strong>
+
             </div>
 
 
             <div>
+
               <span className="detail-label">
                 希望日
               </span>
@@ -709,10 +866,12 @@ function CoachingNew() {
                   .preferred_date ||
                   "-"}
               </strong>
+
             </div>
 
 
             <div>
+
               <span className="detail-label">
                 希望時間
               </span>
@@ -728,10 +887,12 @@ function CoachingNew() {
                       )
                   : "-"}
               </strong>
+
             </div>
 
 
             <div>
+
               <span className="detail-label">
                 リプレイID
               </span>
@@ -741,6 +902,7 @@ function CoachingNew() {
                   .replay_id ||
                   "-"}
               </strong>
+
             </div>
 
           </div>
@@ -752,9 +914,11 @@ function CoachingNew() {
                 "22px",
             }}
           >
+
             <span className="detail-label">
               相談内容
             </span>
+
 
             <p
               style={{
@@ -765,26 +929,35 @@ function CoachingNew() {
               {coachingRequest
                 .request}
             </p>
+
           </div>
 
         </section>
+
       )}
 
+
+      {/* =====================
+          Result Form
+      ===================== */}
 
       <section className="content-card">
 
         <div className="section-title">
 
           <div>
+
             <h3>
               コーチング結果
             </h3>
+
 
             <p>
               今回の内容と
               次回までの課題を
               記録します
             </p>
+
           </div>
 
         </div>
@@ -797,11 +970,16 @@ function CoachingNew() {
           }
         >
 
+          {/* =====================
+              Date
+          ===================== */}
+
           <div className="form-group">
 
             <label htmlFor="date">
               実施日
             </label>
+
 
             <input
               id="date"
@@ -821,11 +999,16 @@ function CoachingNew() {
           </div>
 
 
+          {/* =====================
+              MR
+          ===================== */}
+
           <div className="form-group">
 
             <label htmlFor="mr">
               コーチング実施時のMR
             </label>
+
 
             <input
               id="mr"
@@ -843,6 +1026,7 @@ function CoachingNew() {
               placeholder="例：1520"
             />
 
+
             <small
               style={{
                 color:
@@ -857,11 +1041,16 @@ function CoachingNew() {
           </div>
 
 
+          {/* =====================
+              Match Content
+          ===================== */}
+
           <div className="form-group">
 
             <label htmlFor="matchContent">
               今回やったこと
             </label>
+
 
             <textarea
               id="matchContent"
@@ -883,11 +1072,16 @@ function CoachingNew() {
           </div>
 
 
+          {/* =====================
+              Good Points
+          ===================== */}
+
           <div className="form-group">
 
             <label htmlFor="goodPoints">
               良かったところ
             </label>
+
 
             <textarea
               id="goodPoints"
@@ -909,11 +1103,16 @@ function CoachingNew() {
           </div>
 
 
+          {/* =====================
+              Improvement
+          ===================== */}
+
           <div className="form-group">
 
             <label htmlFor="improvementPoints">
               改善するところ
             </label>
+
 
             <textarea
               id="improvementPoints"
@@ -935,37 +1134,267 @@ function CoachingNew() {
           </div>
 
 
-          <div className="form-group">
+          {/* =====================
+              Coach Task
+          ===================== */}
 
-            <label htmlFor="nextTask">
-              次回までの課題
-            </label>
+          <div
+            style={{
+              marginTop:
+                "10px",
 
-            <textarea
-              id="nextTask"
-              rows="4"
-              value={
-                nextTask
-              }
-              onChange={(
-                event
-              ) =>
-                setNextTask(
-                  event.target
-                    .value
-                )
-              }
-              placeholder="例：ランクマ10試合で対空を意識する"
-            />
+              padding:
+                "22px",
+
+              border:
+                "1px solid #bbf7d0",
+
+              borderRadius:
+                "12px",
+
+              background:
+                "#f0fdf4",
+            }}
+          >
+
+            <div
+              style={{
+                marginBottom:
+                  "20px",
+              }}
+            >
+
+              <h3
+                style={{
+                  margin:
+                    "0 0 6px",
+
+                  color:
+                    "#166534",
+
+                  fontSize:
+                    "17px",
+                }}
+              >
+                コーチからの課題
+              </h3>
+
+
+              <p
+                style={{
+                  margin:
+                    "0",
+
+                  color:
+                    "#64748b",
+
+                  fontSize:
+                    "13px",
+                }}
+              >
+                生徒がこの課題を達成すると
+                50pt獲得します
+              </p>
+
+            </div>
+
+
+            <div className="form-group">
+
+              <label htmlFor="nextTask">
+                課題
+              </label>
+
+
+              <input
+                id="nextTask"
+                type="text"
+                value={
+                  nextTask
+                }
+                onChange={(
+                  event
+                ) =>
+                  setNextTask(
+                    event.target
+                      .value
+                  )
+                }
+                placeholder="例：対空を安定させる"
+                maxLength="100"
+                required
+              />
+
+            </div>
+
+
+            <div
+              className="form-group"
+              style={{
+                marginTop:
+                  "18px",
+              }}
+            >
+
+              <label htmlFor="taskDescription">
+                課題の説明
+              </label>
+
+
+              <textarea
+                id="taskDescription"
+                rows="3"
+                value={
+                  taskDescription
+                }
+                onChange={(
+                  event
+                ) =>
+                  setTaskDescription(
+                    event.target
+                      .value
+                  )
+                }
+                placeholder="例：ランクマッチで対空を意識してプレイする"
+              />
+
+            </div>
+
+
+            <div
+              style={{
+                display:
+                  "grid",
+
+                gridTemplateColumns:
+                  "repeat(2, minmax(0, 1fr))",
+
+                gap:
+                  "16px",
+
+                marginTop:
+                  "18px",
+              }}
+            >
+
+              <div className="form-group">
+
+                <label htmlFor="taskTargetCount">
+                  目標回数
+                </label>
+
+
+                <input
+                  id="taskTargetCount"
+                  type="number"
+                  min="1"
+                  value={
+                    taskTargetCount
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setTaskTargetCount(
+                      event.target
+                        .value
+                    )
+                  }
+                  placeholder="例：10"
+                />
+
+
+                <small
+                  style={{
+                    color:
+                      "#64748b",
+                  }}
+                >
+                  回数で管理しない場合は
+                  空欄でOKです
+                </small>
+
+              </div>
+
+
+              <div className="form-group">
+
+                <label htmlFor="taskDueDate">
+                  期限
+                </label>
+
+
+                <input
+                  id="taskDueDate"
+                  type="date"
+                  value={
+                    taskDueDate
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setTaskDueDate(
+                      event.target
+                        .value
+                    )
+                  }
+                />
+
+
+                <small
+                  style={{
+                    color:
+                      "#64748b",
+                  }}
+                >
+                  期限を設定しない場合は
+                  空欄でOKです
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <div
+              style={{
+                marginTop:
+                  "18px",
+
+                padding:
+                  "12px 14px",
+
+                borderRadius:
+                  "8px",
+
+                background:
+                  "#dcfce7",
+
+                color:
+                  "#166534",
+
+                fontSize:
+                  "13px",
+
+                fontWeight:
+                  "700",
+              }}
+            >
+              🎁 課題達成で +50pt
+            </div>
 
           </div>
 
+
+          {/* =====================
+              Memo
+          ===================== */}
 
           <div className="form-group">
 
             <label htmlFor="memo">
               コーチ用メモ
             </label>
+
 
             <textarea
               id="memo"
@@ -984,6 +1413,10 @@ function CoachingNew() {
 
           </div>
 
+
+          {/* =====================
+              Actions
+          ===================== */}
 
           <div className="form-actions">
 

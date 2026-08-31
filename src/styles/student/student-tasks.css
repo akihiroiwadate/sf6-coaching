@@ -1,0 +1,481 @@
+/* =========================
+   Student Tasks
+========================= */
+
+.student-task-form {
+  margin-bottom: 28px;
+
+  padding: 20px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+
+  background: #f8fbff;
+}
+
+
+.student-task-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 16px;
+
+  margin-top: 16px;
+}
+
+
+.student-task-form-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+
+/* =========================
+   Section
+========================= */
+
+.student-task-section {
+  margin-top: 8px;
+}
+
+
+.student-task-section.completed {
+  margin-top: 30px;
+
+  padding-top: 24px;
+
+  border-top:
+    1px solid #e2e8f0;
+}
+
+
+.student-task-section h4 {
+  margin: 0 0 14px;
+
+  color: #334155;
+
+  font-size: 14px;
+}
+
+
+.student-task-empty {
+  margin: 0;
+
+  padding: 20px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: #94a3b8;
+
+  font-size: 13px;
+
+  text-align: center;
+}
+
+
+/* =========================
+   Task List
+========================= */
+
+.student-task-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+
+.student-task-card {
+  padding: 20px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+
+  background: #fff;
+}
+
+
+.student-task-card-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+
+.student-task-card-header > div {
+  min-width: 0;
+}
+
+
+.student-task-card-header strong {
+  display: block;
+
+  color: #1e3a8a;
+
+  font-size: 16px;
+}
+
+
+.student-task-card-header p {
+  margin: 7px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+.student-task-delete {
+  flex-shrink: 0;
+
+  padding: 4px 7px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #94a3b8;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+
+.student-task-delete:hover {
+  color: #dc2626;
+}
+
+
+/* =========================
+   Due Date
+========================= */
+
+.student-task-due-date {
+  margin-top: 13px;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+
+/* =========================
+   Progress
+========================= */
+
+.student-task-progress-area {
+  margin-top: 18px;
+}
+
+
+.student-task-progress-label {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 8px;
+}
+
+
+.student-task-progress-label span {
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+
+.student-task-progress-label strong {
+  color: #1e3a8a;
+
+  font-size: 13px;
+}
+
+
+.student-task-progress {
+  width: 100%;
+  height: 9px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #e2e8f0;
+}
+
+
+.student-task-progress-bar {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #2563eb;
+
+  transition:
+    width 0.2s ease;
+}
+
+
+/* =========================
+   Count
+========================= */
+
+.student-task-count-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 14px;
+}
+
+
+.student-task-count-actions button {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+
+  background: #fff;
+
+  color: #2563eb;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+
+.student-task-count-actions button:hover {
+  background: #eff6ff;
+}
+
+
+.student-task-count-actions button:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+
+.student-task-count-actions strong {
+  min-width: 50px;
+
+  color: #334155;
+
+  font-size: 14px;
+
+  text-align: center;
+}
+
+
+/* =========================
+   Actions
+========================= */
+
+.student-task-card-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  margin-top: 18px;
+}
+
+
+.student-task-complete-button {
+  min-height: 38px;
+
+  padding: 8px 16px;
+
+  border: 1px solid #86efac;
+  border-radius: 8px;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.student-task-complete-button:hover {
+  background: #dcfce7;
+}
+
+
+/* =========================
+   Completed
+========================= */
+
+.student-completed-task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.student-completed-task {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 13px 4px;
+
+  border-bottom:
+    1px solid #f1f5f9;
+}
+
+
+.student-completed-task:last-child {
+  border-bottom: 0;
+}
+
+
+.student-completed-check {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+  font-weight: 800;
+}
+
+
+.student-completed-task > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.student-completed-task strong {
+  color: #475569;
+
+  font-size: 13px;
+}
+
+
+.student-completed-task span {
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+
+/* =========================
+   Coach Task
+========================= */
+
+.coach-task-card {
+  border-color: #bbf7d0;
+}
+
+
+.coach-task-label {
+  display: inline-block;
+
+  margin-bottom: 7px;
+
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.06em;
+}
+
+
+.coach-task-reward {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  background: #fef3c7;
+
+  color: #92400e;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 700px) {
+  .student-task-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .student-task-form-actions {
+    flex-direction: column-reverse;
+  }
+
+
+  .student-task-form-actions
+  .primary-button,
+  .student-task-form-actions
+  .cancel-button {
+    width: 100%;
+  }
+
+
+  .student-task-card-header {
+    flex-direction: column;
+  }
+
+
+  .coach-task-reward {
+    align-self: flex-start;
+  }
+}

@@ -11,7 +11,8 @@ import {
   supabase,
 } from "../supabase";
 
-import "../styles/student.css";
+import "../styles/student/student.css";
+import "../styles/student/student-apply.css";
 
 
 const COACHING_TYPES = [

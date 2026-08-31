@@ -1,0 +1,181 @@
+/* =========================
+   Student My Page
+========================= */
+
+.student-my-page {
+  width: 100%;
+}
+
+
+/* =========================
+   Growth Summary
+========================= */
+
+.role-student .growth-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 16px;
+}
+
+
+.role-student .growth-card {
+  padding: 20px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+
+  background: #f8fbff;
+}
+
+
+.role-student .growth-card span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+.role-student .growth-card strong {
+  color: #1d4ed8;
+
+  font-size: 25px;
+}
+
+
+.role-student .growth-card small {
+  margin-left: 5px;
+
+  color: #64748b;
+}
+
+
+.role-student .growth-card p {
+  display: inline;
+
+  margin-left: 6px;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+
+/* =========================
+   Coaching History
+========================= */
+
+.role-student .coaching-history {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+.role-student .coaching-record {
+  overflow: hidden;
+
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+
+  background: white;
+}
+
+
+.role-student .coaching-record-header {
+  padding: 14px 18px;
+
+  border-bottom: 1px solid #dbeafe;
+
+  background: #eff6ff;
+}
+
+
+.role-student
+.coaching-record-header > div {
+  display: flex;
+
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 12px;
+}
+
+
+.role-student
+.coaching-record-header strong {
+  color: #1e3a8a;
+
+  font-size: 14px;
+}
+
+
+.role-student
+.coaching-record-header span {
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+.role-student .coaching-record-content {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 22px;
+
+  padding: 20px;
+}
+
+
+.role-student
+.coaching-record-content h4 {
+  margin: 0 0 7px;
+
+  color: #1e40af;
+
+  font-size: 13px;
+}
+
+
+.role-student
+.coaching-record-content p {
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 900px) {
+  .role-student .growth-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .role-student
+  .coaching-record-content {
+    grid-template-columns: 1fr;
+  }
+}
